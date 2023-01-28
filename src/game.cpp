@@ -72,6 +72,8 @@ void Game::Init()
     ResourceManager::LoadTexture("../textures/paddle.png", true, "paddle");
     ResourceManager::LoadTexture("../textures/road.jpg", false, "road");
     ResourceManager::LoadTexture("../textures/sign.png", true, "sign");
+    ResourceManager::LoadTexture("../textures/white.png", false, "white");
+    ResourceManager::LoadTexture("../textures/whitecircle.png", true, "whitecircle");
 
     // load levels
     GameLevel zero; zero.Load("../levels/zero.lvl", this->Width, this->Height );
@@ -199,19 +201,19 @@ void Game::ProcessInput(float dt)
             this->ResetPlayer();
             this->KeysProcessed[GLFW_KEY_ENTER] = true;
         }
-        if (this->Keys[GLFW_KEY_W] && !this->KeysProcessed[GLFW_KEY_W])
-        {
-            this->Level = (this->Level + 1) % 4;
-            this->KeysProcessed[GLFW_KEY_W] = true;
-        }
-        if (this->Keys[GLFW_KEY_S] && !this->KeysProcessed[GLFW_KEY_S])
-        {
-            if (this->Level > 0)
-                --this->Level;
-            else
-                this->Level = 3;
-            this->KeysProcessed[GLFW_KEY_S] = true;
-        }
+        // if (this->Keys[GLFW_KEY_W] && !this->KeysProcessed[GLFW_KEY_W])
+        // {
+        //     this->Level = (this->Level + 1) % 4;
+        //     this->KeysProcessed[GLFW_KEY_W] = true;
+        // }
+        // if (this->Keys[GLFW_KEY_S] && !this->KeysProcessed[GLFW_KEY_S])
+        // {
+        //     if (this->Level > 0)
+        //         --this->Level;
+        //     else
+        //         this->Level = 3;
+        //     this->KeysProcessed[GLFW_KEY_S] = true;
+        // }
     }
 
 
@@ -221,7 +223,7 @@ void Game::ProcessInput(float dt)
         {
             this->KeysProcessed[GLFW_KEY_ENTER] = true;
             this->State = GAME_MENU;
-            this->Level = 0;
+            this->Level = 4; /////////////////////
             ResetLevel();
         }
     }
@@ -232,7 +234,7 @@ void Game::ProcessInput(float dt)
         {
             this->KeysProcessed[GLFW_KEY_ENTER] = true;
             this->State = GAME_MENU;
-            this->Level = 0;
+            this->Level = 4; ///////////////////////
             ResetLevel();
         }
     }
@@ -270,6 +272,16 @@ void Game::Render(float offset)
             for(int i = 0 ; i < one.Road.size(); i++)
             {
                 one.Road[i].Position[0] = one.Road[i].Position[0] - offset;
+            }
+
+            for(int i = 0 ; i < one.Zappers.size(); i++)
+            {
+                one.Zappers[i].Position[0] = one.Zappers[i].Position[0] - offset;
+            }
+
+            for(int i = 0 ; i < one.ZapperBalls.size(); i++)
+            {
+                one.ZapperBalls[i].Position[0] = one.ZapperBalls[i].Position[0] - offset;
             }
         // this->Levels[this->Level] = one;
 
@@ -345,6 +357,8 @@ void Game::ResetLevel()
     this->Total_Coins += this->Coins;
     this->Coins = 0;
     this->Distance_Travelled = 0;
+    this->Levels[this->Level].Zappers.clear();
+    this->Levels[this->Level].ZapperBalls.clear();
     if (this->Level == 0)
         this->Levels[0].Load("../levels/one.lvl", this->Width, this->Height );
     else if (this->Level == 1)
@@ -365,7 +379,9 @@ void Game::ResetPlayer()
 
 // collision detection
 bool CheckCollision(GameObject &one, GameObject &two);
+bool CheckCollisionBalls(BallObject &one, BallObject &two);
 Collision CheckCollision(BallObject &one, GameObject &two);
+Collision CheckCollisionBallwithBoxAsBall(BallObject &one, GameObject &two); // AABB - Circle collision
 Direction VectorDirection(glm::vec2 closest);
 
 void Game::DoCollisions()
@@ -374,7 +390,7 @@ void Game::DoCollisions()
     {
         if (!box.Destroyed)
         {
-            Collision collision = CheckCollision(*Ball, box);
+            Collision collision = CheckCollisionBallwithBoxAsBall(*Ball, box);
             if (std::get<0>(collision)) // if collision is true
             {
                 // destroy block if not solid
@@ -413,6 +429,48 @@ void Game::DoCollisions()
             }
         }    
     }
+
+    for (GameObject &box : this->Levels[this->Level].Zappers)
+    {
+        Collision collision = CheckCollision(*Ball, box);
+        if(std::get<0>(collision))
+        {
+            ResetPlayer();
+            this->Lives--;
+                        // collision resolution
+                Direction dir = std::get<1>(collision);
+                glm::vec2 diff_vector = std::get<2>(collision);
+                if (dir == LEFT || dir == RIGHT) // horizontal collision
+                {
+                    Ball->Velocity.x = -Ball->Velocity.x; // reverse horizontal velocity
+                    // relocate
+                    float penetration = Ball->Radius - std::abs(diff_vector.x);
+                    if (dir == LEFT)
+                        Ball->Position.x += penetration; // move ball to right
+                    else
+                        Ball->Position.x -= penetration; // move ball to left;
+                }
+                else // vertical collision
+                {
+                    Ball->Velocity.y = -Ball->Velocity.y; // reverse vertical velocity
+                    // relocate
+                    float penetration = Ball->Radius - std::abs(diff_vector.y);
+                    if (dir == UP)
+                        Ball->Position.y -= penetration; // move ball bback up
+                    else
+                        Ball->Position.y += penetration; // move ball back down
+                }   
+        }       
+    }
+
+    for (BallObject &ball : this->Levels[this->Level].ZapperBalls)
+    {
+        if(CheckCollisionBalls(*Ball,ball))
+        {
+            ResetPlayer();
+            this->Lives--;
+        }
+    }
     // check collisions for player pad (unless stuck)
     // Collision result = CheckCollision(*Ball, *Player);
     // if (!Ball->Stuck && std::get<0>(result))
@@ -444,7 +502,41 @@ bool CheckCollision(GameObject &one, GameObject &two) // AABB - AABB collision
     return collisionX && collisionY;
 }
 
+bool CheckCollisionBalls(BallObject &one, BallObject &two)
+{
+    glm::vec2 center(one.Position + one.Radius);
+    glm::vec2 center2(two.Position + two.Radius);
+
+    glm::vec2 difference = center - center2;
+
+    if (glm::length(difference) <= one.Radius + two.Radius) // not <= since in that case a collision also occurs when object one exactly touches object two, which they are at the end of each collision resolution stage.
+        return true;
+    else
+        return false;
+}
+
 Collision CheckCollision(BallObject &one, GameObject &two) // AABB - Circle collision
+{
+    // get center point circle first 
+    glm::vec2 center(one.Position + one.Radius);
+    // calculate AABB info (center, half-extents)
+    glm::vec2 aabb_half_extents(two.Size.x / 2.0f, two.Size.y / 2.0f);
+    glm::vec2 aabb_center(two.Position.x + aabb_half_extents.x, two.Position.y + aabb_half_extents.y);
+    // get difference vector between both centers
+    glm::vec2 difference = center - aabb_center;
+    glm::vec2 clamped = glm::clamp(difference, -aabb_half_extents, aabb_half_extents);
+    // now that we know the clamped values, add this to AABB_center and we get the value of box closest to circle
+    glm::vec2 closest = aabb_center + clamped;
+    // now retrieve vector between center circle and closest point AABB and check if length < radius
+    difference = closest - center;
+
+    if (glm::length(difference) < one.Radius + (two.Size.x / 2.0f)) // not <= since in that case a collision also occurs when object one exactly touches object two, which they are at the end of each collision resolution stage.
+        return std::make_tuple(true, VectorDirection(difference), difference);
+    else
+        return std::make_tuple(false, UP, glm::vec2(0.0f, 0.0f));
+}
+
+Collision CheckCollisionBallwithBoxAsBall(BallObject &one, GameObject &two) // AABB - Circle collision
 {
     // get center point circle first 
     glm::vec2 center(one.Position + one.Radius);

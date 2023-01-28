@@ -14,6 +14,7 @@
 #include <glm/glm.hpp>
 
 #include "gameobject.h"
+#include "ball_object.h"
 #include "sprite_renderer.h"
 #include "resource_manager.h"
 
@@ -27,6 +28,8 @@ public:
     // level state
     std::vector<GameObject> Bricks;
     std::vector<GameObject> Road;
+    std::vector<GameObject> Zappers;
+    std::vector<BallObject> ZapperBalls;
     // constructor
     GameLevel() { }
     // loads level from file
@@ -40,6 +43,7 @@ private:
     // initialize level from tile data
     void init(std::vector<std::vector<unsigned int>> tileData, unsigned int levelWidth, unsigned int levelHeight);
     void initRoad( unsigned int levelWidth, unsigned int levelHeight);
+    void initZapper( unsigned int levelWidth, unsigned int levelHeight);
 };
 
 #endif

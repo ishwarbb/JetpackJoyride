@@ -7,6 +7,7 @@
 ** option) any later version.
 ******************************************************************/
 #include "gamelevel.h"
+#include "ball_object.h"
 #include <GLFW/glfw3.h>
 
 #include <fstream>
@@ -37,6 +38,7 @@ void GameLevel::Load(const char *file, unsigned int levelWidth, unsigned int lev
         {
             this->init(tileData, levelWidth, levelHeight);
             this->initRoad(levelWidth,levelHeight);
+            this->initZapper(levelWidth,levelHeight);
         }
     }
 }
@@ -44,6 +46,14 @@ void GameLevel::Load(const char *file, unsigned int levelWidth, unsigned int lev
 void GameLevel::Draw(SpriteRenderer &renderer)
 {
     for (GameObject &tile : this->Bricks)
+        if (!tile.Destroyed)
+            tile.Draw(renderer);
+
+    for (GameObject &tile : this->Zappers)
+        if (!tile.Destroyed)
+            tile.Draw(renderer);
+
+    for (GameObject &tile : this->ZapperBalls)
         if (!tile.Destroyed)
             tile.Draw(renderer);
 }
@@ -56,6 +66,27 @@ bool GameLevel::IsCompleted()
     // return true;
     // if(this.)
     return false;
+}
+
+void GameLevel::initZapper( unsigned int levelWidth, unsigned int levelHeight)
+{
+    for(unsigned int i = 0; i < 100; i++)
+    {
+        glm::vec2 pos(600 + (1200)*i, levelHeight - 350);
+        glm::vec2 size(8, 200);;
+        GameObject obj(pos, size, ResourceManager::GetTexture("white"), glm::vec3(1.0f, 1.0f, 1.0f));
+        obj.isZapper = true;
+        this->Zappers.push_back(obj);
+
+        glm::vec2 ball1Pos = glm::vec2(pos.x + size.x/2.0f - BALL_RADIUS, pos.y - BALL_RADIUS); 
+        BallObject ball1(ball1Pos, BALL_RADIUS, INITIAL_BALL_VELOCITY,ResourceManager::GetTexture("whitecircle"));
+
+        glm::vec2 ball2Pos = glm::vec2(pos.x + size.x/2.0f - BALL_RADIUS, pos.y + size.y - BALL_RADIUS); 
+        BallObject ball2(ball2Pos, BALL_RADIUS, INITIAL_BALL_VELOCITY,ResourceManager::GetTexture("whitecircle"));
+
+        this->ZapperBalls.push_back(ball1);
+        this->ZapperBalls.push_back(ball2);
+    }
 }
 
 void GameLevel::initRoad( unsigned int levelWidth, unsigned int levelHeight)
@@ -78,7 +109,6 @@ void GameLevel::init(std::vector<std::vector<unsigned int>> tileData, unsigned i
     float unit_height = levelHeight / height; 
     float unit_width = unit_height;
 
-    printf("%f\n",unit_height);
     // initialize level tiles based on tileData	
 	
     for (unsigned int x = 0; x < 100; ++x)
@@ -95,7 +125,7 @@ void GameLevel::init(std::vector<std::vector<unsigned int>> tileData, unsigned i
                 glm::vec2 size(unit_width, unit_height);
                 GameObject obj(pos, size, ResourceManager::GetTexture("block_solid"), glm::vec3(0.8f, 0.8f, 0.7f));
                 obj.IsSolid = true;
-                this->Bricks.push_back(obj);
+                // this->Bricks.push_back(obj);
             }
             else if (tileData[y][x_coord] == 2)	// non-solid; now determine its color based on level data
             {
