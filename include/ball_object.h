@@ -15,6 +15,9 @@
 #include "gameobject.h"
 #include "texture.h"
 
+const glm::vec2 INITIAL_BALL_VELOCITY(0.0f, 1.0f);
+// Radius of the ball object
+const float BALL_RADIUS = 75 / 2.0f;
 
 // BallObject holds the state of the Ball object inheriting
 // relevant state data from GameObject. Contains some extra
@@ -26,6 +29,7 @@ public:
     // ball state	
     float   Radius;
     bool    Stuck;
+    glm::vec2 Acceleration;
     // constructor(s)
     BallObject();
     BallObject(glm::vec2 pos, float radius, glm::vec2 velocity, Texture2D sprite);

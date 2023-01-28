@@ -11,6 +11,8 @@
 #include "sprite_renderer.h"
 #include "ball_object.h"
 #include "gameobject.h"
+#include "text_renderer.h"
+#include <bits/stdc++.h>
 
 void
 PrintMat4( glm::mat4 mat )
@@ -26,11 +28,14 @@ PrintMat4( glm::mat4 mat )
 // GameObject      *Player;
 SpriteRenderer  *Renderer;
 BallObject     *Ball; 
+TextRenderer  *Text;
 
 glm::mat4 transform = glm::mat4(1.0f); 
+float road_pos;
+float road_width;
 
 Game::Game(unsigned int width, unsigned int height) 
-    : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
+    : State(GAME_MENU), Keys(), Width(width), Height(height)
 { 
 
 }
@@ -58,10 +63,18 @@ void Game::Init()
         // load textures
     ResourceManager::LoadTexture("../textures/background.jpg", false, "background");
     ResourceManager::LoadTexture("../textures/awesomeface.png", true, "face");
+    ResourceManager::LoadTexture("../textures/redface.png", true, "redface");
+    // ResourceManager::LoadTexture("../textures/barry.jpeg", true, "face");
     ResourceManager::LoadTexture("../textures/block.png", false, "block");
+    ResourceManager::LoadTexture("../textures/coin2.png", true, "coin");
     ResourceManager::LoadTexture("../textures/block_solid.png", false, "block_solid");
+    // ResourceManager::LoadTexture("../textures/fireball.png", false, "block_solid");
     ResourceManager::LoadTexture("../textures/paddle.png", true, "paddle");
+    ResourceManager::LoadTexture("../textures/road.jpg", false, "road");
+    ResourceManager::LoadTexture("../textures/sign.png", true, "sign");
+
     // load levels
+    GameLevel zero; zero.Load("../levels/zero.lvl", this->Width, this->Height );
     GameLevel one; one.Load("../levels/one.lvl", this->Width, this->Height );
     GameLevel two; two.Load("../levels/two.lvl", this->Width, this->Height );
     GameLevel three; three.Load("../levels/three.lvl", this->Width, this->Height );
@@ -70,6 +83,7 @@ void Game::Init()
     this->Levels.push_back(two);
     this->Levels.push_back(three);
     this->Levels.push_back(four);
+    this->Levels.push_back(zero);
     this->Level = 0;
 
     glm::vec2 playerPos = glm::vec2(
@@ -79,10 +93,22 @@ void Game::Init()
     // Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
 
     glm::vec2 ballPos = + glm::vec2(
-        BALL_RADIUS, 
-        BALL_RADIUS 
-        );
+        10, 
+        0 );
     Ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY,ResourceManager::GetTexture("face"));
+
+    Text = new TextRenderer(this->Width, this->Height);
+    Text->Load("../fonts/ocraext.ttf", 24);
+
+    this->Lives = 30;
+    this->Coins = 0;
+    this->Total_Coins = 0;
+    this->Distance_Travelled = 0;
+    this->Length = 1000000;
+
+    road_pos = 0;
+    road_width = this->Width;
+    Ball->Acceleration = glm::vec2(0,9.8);
 }
 
 void Game::Update(float dt)
@@ -91,20 +117,57 @@ void Game::Update(float dt)
     // check for collisions
     this->DoCollisions();
     // check loss condition
-    if (Ball->Position.y >= this->Height) // did ball reach bottom edge?
+    // if (Ball->Position.y >= this->Height) // did ball reach bottom edge?
+    // {
+    //     --this->Lives;
+    //     if (this->Lives == 0)
+    //     {
+    //         this->ResetLevel();
+    //         this->State = GAME_MENU;
+    //     }
+
+    //     this->ResetPlayer();
+    // }
+
+    if(this->State == GAME_ACTIVE && this->Lives == 0)
+    {
+            this->State = GAME_LOSE;
+            this->Level = 4;
+    }
+
+    // if(this->State == GAME_WIN || GAME_LOSE)
+    // {
+    //     this->Level = 4;
+    // }
+
+    if (this->State == GAME_ACTIVE && this->Levels[this->Level].IsCompleted())
     {
         this->ResetLevel();
         this->ResetPlayer();
+        this->State = GAME_WIN;
     }
 
-    // this->Levels.clear();
-    // GameLevel one; one.Load("../levels/one.lvl", this->Width , this->Height );
-    // this->Levels.push_back(one);
+    if(this->Length <= this->Distance_Travelled)
+    {
+        if(this->Level == 3)
+        {
+            this->State = GAME_WIN;
+            this->Level = 4;
+            ResetLevel();
+        }
+        else
+        {
+            this->Level++;
+            ResetLevel();
+        }
+    }
 
-    // transform = glm::translate(transform, glm::vec3(-2.0f, 2.0f, 0.0f));    
-    // ResourceManager::GetShader("sprite").SetMatrix4("model", transform);
-    // PrintMat4(transform);
+    if(Ball->Velocity.y > 0)
+    {
+        Ball = new BallObject(Ball->Position, BALL_RADIUS, Ball->Velocity,ResourceManager::GetTexture("face"));
+    }
 }
+
 
 void Game::ProcessInput(float dt)
 {
@@ -112,26 +175,66 @@ void Game::ProcessInput(float dt)
     {
         float velocity = PLAYER_VELOCITY * dt;
         // move playerboard
-        if (this->Keys[GLFW_KEY_A])
+        if (this->Keys[GLFW_KEY_UP])
         {
-        //     if (Player->Position.x >= 0.0f)
-            // {
-                // Player->Position.x -= velocity;
-                if (Ball->Stuck)
-                    Ball->Position.x -= velocity;
-            // }
+            Ball->Velocity.y -= 15.0f;
+            Ball = new BallObject(Ball->Position, BALL_RADIUS, Ball->Velocity,ResourceManager::GetTexture("redface"));
         }
-        if (this->Keys[GLFW_KEY_D])
+    }
+
+
+    if (this->State == GAME_MENU)
+    {
+        this->Level = 4;   // TO BE DECIDED
+        this->Total_Coins = 0;
+
+
+        if (this->Keys[GLFW_KEY_ENTER] && !this->KeysProcessed[GLFW_KEY_ENTER])
         {
-            // if (Player->Position.x <= this->Width - Player->Size.x)
-            // {
-                // Player->Position.x += velocity;
-                if (Ball->Stuck)
-                    Ball->Position.x += velocity;
-            // }
+
+            this->Level = 0;     // TO BE DECIDED
+
+            this->State = GAME_ACTIVE;
+            this->ResetLevel();
+            this->ResetPlayer();
+            this->KeysProcessed[GLFW_KEY_ENTER] = true;
         }
-        if (this->Keys[GLFW_KEY_SPACE])
-            Ball->Stuck = false;
+        if (this->Keys[GLFW_KEY_W] && !this->KeysProcessed[GLFW_KEY_W])
+        {
+            this->Level = (this->Level + 1) % 4;
+            this->KeysProcessed[GLFW_KEY_W] = true;
+        }
+        if (this->Keys[GLFW_KEY_S] && !this->KeysProcessed[GLFW_KEY_S])
+        {
+            if (this->Level > 0)
+                --this->Level;
+            else
+                this->Level = 3;
+            this->KeysProcessed[GLFW_KEY_S] = true;
+        }
+    }
+
+
+    if (this->State == GAME_WIN)
+    {
+        if (this->Keys[GLFW_KEY_ENTER])
+        {
+            this->KeysProcessed[GLFW_KEY_ENTER] = true;
+            this->State = GAME_MENU;
+            this->Level = 0;
+            ResetLevel();
+        }
+    }
+
+    if (this->State == GAME_LOSE)
+    {
+        if (this->Keys[GLFW_KEY_ENTER])
+        {
+            this->KeysProcessed[GLFW_KEY_ENTER] = true;
+            this->State = GAME_MENU;
+            this->Level = 0;
+            ResetLevel();
+        }
     }
 }
 
@@ -139,41 +242,117 @@ void Game::Render(float offset)
 {
     // Texture2D myTexture =  ResourceManager::GetTexture("face");
     // Renderer->DrawSprite(myTexture, glm::vec2(200.0f, 200.0f), glm::vec2(300.0f, 400.0f), 0.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-    if(this->State == GAME_ACTIVE)
+    if(this->State == GAME_ACTIVE || GAME_MENU)
     {
         // draw background
         Texture2D background = ResourceManager::GetTexture("background");
         Renderer->DrawSprite(background, 
             glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f
         );
+
+        for (GameObject &tile : this->Levels[this->Level].Road)
+        {
+        if (!tile.Destroyed)
+            tile.Draw(*Renderer);
+        }
+
         // draw level
         // GameLevel one; one.Load("../levels/one.lvl", this->Width , this->Height );
         GameLevel &one = this->Levels[this->Level];
-        for(int i = 0 ; i < one.Bricks.size(); i++)
+        if(this->State == GAME_ACTIVE)
         {
-            one.Bricks[i].Position[0] = one.Bricks[i].Position[0] - offset;
-        }
+            for(int i = 0 ; i < one.Bricks.size(); i++)
+            {
+                one.Bricks[i].Position[0] = one.Bricks[i].Position[0] - offset;
+                this->Distance_Travelled += offset;
+            }
+
+            for(int i = 0 ; i < one.Road.size(); i++)
+            {
+                one.Road[i].Position[0] = one.Road[i].Position[0] - offset;
+            }
         // this->Levels[this->Level] = one;
 
-        one.Draw(*Renderer);
         // this->Levels[this->Level].Draw(*Renderer);
 
         // Player->Draw(*Renderer); 
         Ball->Draw(*Renderer);
+
+        std::stringstream ss1; 
+        std::stringstream ss2; 
+        std::stringstream ss3; 
+        std::stringstream ss4; 
+        std::stringstream ss5; 
+        ss1 << this->Coins;
+        Text->RenderText("Coins:" + ss1.str(), 5.0f, 5.0f, 1.0f);
+
+        ss2 << this->Lives;
+        Text->RenderText("Lives:" + ss2.str(), (float)this->Width - 110.0f, 5.0f, 1.0f);
+
+        ss3 << this->Distance_Travelled / 1000; 
+        ss4 << this->Length / 1000; 
+        Text->RenderText("Distance_Travelled:" + ss3.str() + "/" + ss4.str(), 5.0f, 25.0f, 1.0f);
+
+        ss5 << (this->Level + 1);
+        Text->RenderText("Level:" + ss5.str(), (float)this->Width - 110.0f, 25.0f, 1.0f);
+        }
+
+        one.Draw(*Renderer);
+
+    }
+
+    if (this->State == GAME_MENU)
+    {
+        Text->RenderText("Press ENTER to start", 250.0f, Height / 2, 1.0f);
+        Text->RenderText("Press W or S to select level", 245.0f, Height / 2 + 20.0f, 0.75f);
+    }
+
+    if (this->State == GAME_WIN)
+    {
+        Text->RenderText(
+            "You WON!!!", 320.0, Height / 2 - 20.0, 1.0, glm::vec3(0.0, 1.0, 0.0)
+        );
+        Text->RenderText(
+            "Press ENTER to retry or ESC to quit", 130.0, Height / 2, 1.0, glm::vec3(1.0, 1.0, 0.0)
+        );
+        std::stringstream ss;
+        ss << this->Total_Coins; 
+        Text->RenderText(
+            "Score : "+ ss.str(), 130.0, Height / 2 + 20.0, 1.0, glm::vec3(1.0, 1.0, 0.0)
+        );
+    }
+
+    if (this->State == GAME_LOSE)
+    {
+        Text->RenderText(
+            "You LOSE :(", 320.0, Height / 2 - 20.0, 1.0, glm::vec3(0.0, 1.0, 0.0)
+        );
+        Text->RenderText(
+            "Press ENTER to retry or ESC to quit", 130.0, Height / 2, 1.0, glm::vec3(1.0, 1.0, 0.0)
+        );
+        std::stringstream ss;
+        ss << this->Total_Coins; 
+        Text->RenderText(
+            "Score : "+ ss.str(), 130.0, Height / 2 + 20.0, 1.0, glm::vec3(1.0, 1.0, 0.0)
+        );
     }
 }
 
 
 void Game::ResetLevel()
 {
+    this->Lives = 3;
+    this->Total_Coins += this->Coins;
+    this->Coins = 0;
+    this->Distance_Travelled = 0;
     if (this->Level == 0)
-        this->Levels[0].Load("levels/one.lvl", this->Width, this->Height );
+        this->Levels[0].Load("../levels/one.lvl", this->Width, this->Height );
     else if (this->Level == 1)
-        this->Levels[1].Load("levels/two.lvl", this->Width, this->Height );
+        this->Levels[1].Load("../levels/two.lvl", this->Width, this->Height );
     else if (this->Level == 2)
-        this->Levels[2].Load("levels/three.lvl", this->Width, this->Height );
+        this->Levels[2].Load("../levels/three.lvl", this->Width, this->Height );
     else if (this->Level == 3)
-        this->Levels[3].Load("levels/four.lvl", this->Width, this->Height );
+        this->Levels[3].Load("../levels/four.lvl", this->Width, this->Height );
 }
 
 void Game::ResetPlayer()
@@ -181,7 +360,7 @@ void Game::ResetPlayer()
     // reset player/ball stats
     // Player->Size = PLAYER_SIZE;
     // Player->Position = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
-    // Ball->Reset(Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -(BALL_RADIUS * 2.0f)), INITIAL_BALL_VELOCITY);
+    Ball->Reset( glm::vec2( 10,0), INITIAL_BALL_VELOCITY);
 }
 
 // collision detection
@@ -200,30 +379,37 @@ void Game::DoCollisions()
             {
                 // destroy block if not solid
                 if (!box.IsSolid)
+                {
                     box.Destroyed = true;
-                // collision resolution
-                Direction dir = std::get<1>(collision);
-                glm::vec2 diff_vector = std::get<2>(collision);
-                if (dir == LEFT || dir == RIGHT) // horizontal collision
-                {
-                    Ball->Velocity.x = -Ball->Velocity.x; // reverse horizontal velocity
-                    // relocate
-                    float penetration = Ball->Radius - std::abs(diff_vector.x);
-                    if (dir == LEFT)
-                        Ball->Position.x += penetration; // move ball to right
-                    else
-                        Ball->Position.x -= penetration; // move ball to left;
+                    this->Coins++;
                 }
-                else // vertical collision
-                {
-                    Ball->Velocity.y = -Ball->Velocity.y; // reverse vertical velocity
-                    // relocate
-                    float penetration = Ball->Radius - std::abs(diff_vector.y);
-                    if (dir == UP)
-                        Ball->Position.y -= penetration; // move ball bback up
-                    else
-                        Ball->Position.y += penetration; // move ball back down
-                }               
+                else{
+                    ResetPlayer();
+                    this->Lives--;
+                }
+                // collision resolution
+                // Direction dir = std::get<1>(collision);
+                // glm::vec2 diff_vector = std::get<2>(collision);
+                // if (dir == LEFT || dir == RIGHT) // horizontal collision
+                // {
+                //     Ball->Velocity.x = -Ball->Velocity.x; // reverse horizontal velocity
+                //     // relocate
+                //     float penetration = Ball->Radius - std::abs(diff_vector.x);
+                //     if (dir == LEFT)
+                //         Ball->Position.x += penetration; // move ball to right
+                //     else
+                //         Ball->Position.x -= penetration; // move ball to left;
+                // }
+                // else // vertical collision
+                // {
+                //     Ball->Velocity.y = -Ball->Velocity.y; // reverse vertical velocity
+                //     // relocate
+                //     float penetration = Ball->Radius - std::abs(diff_vector.y);
+                //     if (dir == UP)
+                //         Ball->Position.y -= penetration; // move ball bback up
+                //     else
+                //         Ball->Position.y += penetration; // move ball back down
+                // }               
             }
         }    
     }
@@ -267,13 +453,13 @@ Collision CheckCollision(BallObject &one, GameObject &two) // AABB - Circle coll
     glm::vec2 aabb_center(two.Position.x + aabb_half_extents.x, two.Position.y + aabb_half_extents.y);
     // get difference vector between both centers
     glm::vec2 difference = center - aabb_center;
-    glm::vec2 clamped = glm::clamp(difference, -aabb_half_extents, aabb_half_extents);
-    // now that we know the clamped values, add this to AABB_center and we get the value of box closest to circle
-    glm::vec2 closest = aabb_center + clamped;
-    // now retrieve vector between center circle and closest point AABB and check if length < radius
-    difference = closest - center;
+    // glm::vec2 clamped = glm::clamp(difference, -aabb_half_extents, aabb_half_extents);
+    // // now that we know the clamped values, add this to AABB_center and we get the value of box closest to circle
+    // glm::vec2 closest = aabb_center + clamped;
+    // // now retrieve vector between center circle and closest point AABB and check if length < radius
+    // difference = closest - center;
 
-    if (glm::length(difference) < one.Radius) // not <= since in that case a collision also occurs when object one exactly touches object two, which they are at the end of each collision resolution stage.
+    if (glm::length(difference) < one.Radius + (two.Size.x / 2.0f)) // not <= since in that case a collision also occurs when object one exactly touches object two, which they are at the end of each collision resolution stage.
         return std::make_tuple(true, VectorDirection(difference), difference);
     else
         return std::make_tuple(false, UP, glm::vec2(0.0f, 0.0f));

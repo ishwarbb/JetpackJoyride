@@ -19,11 +19,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 // The Width of the screen
-const unsigned int SCREEN_WIDTH = 800;
+const unsigned int SCREEN_WIDTH = 1600;
 // The height of the screen
-const unsigned int SCREEN_HEIGHT = 600;
+const unsigned int SCREEN_HEIGHT = 1200;
 
-Game Breakout(SCREEN_WIDTH, SCREEN_HEIGHT);
+Game* Breakout = new Game(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 int main(int argc, char *argv[])
 {
@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
-    glfwWindowHint(GLFW_RESIZABLE, false);
+    glfwWindowHint(GLFW_RESIZABLE, true);
 
     GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Breakout", nullptr, nullptr);
     glfwMakeContextCurrent(window);
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
     // initialize game
     // ---------------
-    Breakout.Init();
+    Breakout->Init();
 
     // deltaTime variables
     // -------------------
@@ -71,24 +71,24 @@ int main(int argc, char *argv[])
         // --------------------
         float currentFrame = glfwGetTime();
         // float offset = (float) 0.5 * glfwGetTime();
-        float offset = (float) 0.5 ;
+        float offset = (float) 10 ;
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         glfwPollEvents();
 
         // manage user input
         // -----------------
-        Breakout.ProcessInput(deltaTime);
+        Breakout->ProcessInput(deltaTime);
 
         // update game state
         // -----------------
-        Breakout.Update(deltaTime);
+        Breakout->Update(deltaTime);
 
         // render
         // ------
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        Breakout.Render(offset);
+        Breakout->Render(offset);
 
         glfwSwapBuffers(window);
     }
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     // delete all resources as loaded using the resource manager
     // ---------------------------------------------------------
     ResourceManager::Clear();
-
+    delete Breakout;
     glfwTerminate();
     return 0;
 }
@@ -109,9 +109,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (key >= 0 && key < 1024)
     {
         if (action == GLFW_PRESS)
-            Breakout.Keys[key] = true;
+            Breakout->Keys[key] = true;
         else if (action == GLFW_RELEASE)
-            Breakout.Keys[key] = false;
+        {
+            Breakout->Keys[key] = false;
+            Breakout->KeysProcessed[key] = false;
+        }
     }
 }
 

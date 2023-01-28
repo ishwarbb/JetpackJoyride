@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "tuple": "cpp",
+        "sstream": "cpp",
+        "iosfwd": "cpp",
+        "array": "cpp",
+        "bitset": "cpp",
+        "initializer_list": "cpp",
+        "ranges": "cpp",
+        "span": "cpp",
+        "string_view": "cpp",
+        "utility": "cpp",
+        "valarray": "cpp"
+    }
+}

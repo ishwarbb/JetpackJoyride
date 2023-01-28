@@ -34,7 +34,10 @@ void GameLevel::Load(const char *file, unsigned int levelWidth, unsigned int lev
             tileData.push_back(row);
         }
         if (tileData.size() > 0)
+        {
             this->init(tileData, levelWidth, levelHeight);
+            this->initRoad(levelWidth,levelHeight);
+        }
     }
 }
 
@@ -50,7 +53,20 @@ bool GameLevel::IsCompleted()
     for (GameObject &tile : this->Bricks)
         if (!tile.IsSolid && !tile.Destroyed)
             return false;
-    return true;
+    // return true;
+    // if(this.)
+    return false;
+}
+
+void GameLevel::initRoad( unsigned int levelWidth, unsigned int levelHeight)
+{
+    for(unsigned int i = 0; i < 100; i++)
+    {
+        glm::vec2 pos((1200)*i, levelHeight - 600);
+        glm::vec2 size(400, 600);;
+        GameObject obj(pos, size, ResourceManager::GetTexture("sign"), glm::vec3(0.8f, 0.8f, 0.7f));
+        this->Road.push_back(obj);
+    }
 }
 
 void GameLevel::init(std::vector<std::vector<unsigned int>> tileData, unsigned int levelWidth, unsigned int levelHeight)
@@ -61,6 +77,8 @@ void GameLevel::init(std::vector<std::vector<unsigned int>> tileData, unsigned i
     // float unit_width = levelWidth /( 2 * static_cast<float>(width));
     float unit_height = levelHeight / height; 
     float unit_width = unit_height;
+
+    printf("%f\n",unit_height);
     // initialize level tiles based on tileData	
 	
     for (unsigned int x = 0; x < 100; ++x)
@@ -79,21 +97,13 @@ void GameLevel::init(std::vector<std::vector<unsigned int>> tileData, unsigned i
                 obj.IsSolid = true;
                 this->Bricks.push_back(obj);
             }
-            else if (tileData[y][x_coord] > 1)	// non-solid; now determine its color based on level data
+            else if (tileData[y][x_coord] == 2)	// non-solid; now determine its color based on level data
             {
                 glm::vec3 color = glm::vec3(1.0f); // original: white
-                if (tileData[y][x_coord] == 2)
-                    color = glm::vec3(0.2f, 0.6f, 1.0f);
-                else if (tileData[y][x_coord] == 3)
-                    color = glm::vec3(0.0f, 0.7f, 0.0f);
-                else if (tileData[y][x_coord] == 4)
-                    color = glm::vec3(0.8f, 0.8f, 0.4f);
-                else if (tileData[y][x_coord] == 5)
-                    color = glm::vec3(1.0f, 0.5f, 0.0f);
 
                 glm::vec2 pos((levelWidth/2) - offset + unit_width * x, unit_height * y);
                 glm::vec2 size(unit_width, unit_height);
-                this->Bricks.push_back(GameObject(pos, size, ResourceManager::GetTexture("block"), color));
+                this->Bricks.push_back(GameObject(pos, size, ResourceManager::GetTexture("coin"), glm::vec3(1.0f, 1.0f, 1.0f)));
             }
         }
     }
