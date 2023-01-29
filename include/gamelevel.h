@@ -30,6 +30,7 @@ public:
     std::vector<GameObject> Road;
     std::vector<GameObject> Zappers;
     std::vector<BallObject> ZapperBalls;
+    std::vector<std::pair<GameObject, std::pair<BallObject,BallObject>>> ZapperObjects; 
     // constructor
     GameLevel() { }
     // loads level from file

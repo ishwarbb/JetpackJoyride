@@ -30,6 +30,9 @@ public:
     bool        Destroyed;
 
     bool isZapper;
+    // std::vector<BallObject> Balls;
+    glm::vec2 center;
+
     // render state
     Texture2D   Sprite;	
     // constructor(s)

@@ -274,15 +274,37 @@ void Game::Render(float offset)
                 one.Road[i].Position[0] = one.Road[i].Position[0] - offset;
             }
 
-            for(int i = 0 ; i < one.Zappers.size(); i++)
+            // for(int i = 0 ; i < one.Zappers.size(); i++)
+            // {
+            //     one.Zappers[i].Position[0] = one.Zappers[i].Position[0] - offset;
+            // }
+
+            // for(int i = 0 ; i < one.ZapperBalls.size(); i++)
+            // {
+            //     one.ZapperBalls[i].Position[0] = one.ZapperBalls[i].Position[0] - offset;
+            // }
+
+
+            for(int i = 0 ; i < one.ZapperObjects.size(); i++)
             {
-                one.Zappers[i].Position[0] = one.Zappers[i].Position[0] - offset;
+                one.ZapperObjects[i].first.Position[0] = one.ZapperObjects[i].first.Position[0] - offset;
+                one.ZapperObjects[i].first.center.x -= offset;
+                one.ZapperObjects[i].first.Rotation = one.ZapperObjects[i].first.Rotation +1;
+                one.ZapperObjects[i].first.Rotation = one.ZapperObjects[i].first.Rotation +1;
+
+                float rot = glm::radians(one.ZapperObjects[i].first.Rotation);
+                // float rot = glm::radians(0.0f);;
+                glm::vec2 center = one.ZapperObjects[i].first.center;
+                int l = one.ZapperObjects[i].first.Size.y;
+                int b = one.ZapperObjects[i].first.Size.x;
+
+            one.ZapperObjects[i].second.first.Position.x = center.x + (static_cast<float>(sin(rot)) * ( l/ 2.0f)) - (BALL_RADIUS) ;
+            one.ZapperObjects[i].second.first.Position.y = center.y - (static_cast<float>(cos(rot)) * ( l/ 2.0f)) - (BALL_RADIUS);
+ 
+            one.ZapperObjects[i].second.second.Position.x = center.x - (static_cast<float>(sin(rot)) * ( l/ 2.0f)) - (BALL_RADIUS) ;
+            one.ZapperObjects[i].second.second.Position.y = center.y + (static_cast<float>(cos(rot)) * ( l/ 2.0f)) - (BALL_RADIUS);
             }
 
-            for(int i = 0 ; i < one.ZapperBalls.size(); i++)
-            {
-                one.ZapperBalls[i].Position[0] = one.ZapperBalls[i].Position[0] - offset;
-            }
         // this->Levels[this->Level] = one;
 
         // this->Levels[this->Level].Draw(*Renderer);
@@ -381,6 +403,7 @@ void Game::ResetPlayer()
 bool CheckCollision(GameObject &one, GameObject &two);
 bool CheckCollisionBalls(BallObject &one, BallObject &two);
 Collision CheckCollision(BallObject &one, GameObject &two);
+bool CheckCollisionNonAABB(BallObject &one, GameObject &two, glm::vec2 end1, glm::vec2 end2);
 Collision CheckCollisionBallwithBoxAsBall(BallObject &one, GameObject &two); // AABB - Circle collision
 Direction VectorDirection(glm::vec2 closest);
 
@@ -402,75 +425,103 @@ void Game::DoCollisions()
                 else{
                     ResetPlayer();
                     this->Lives--;
-                }
-                // collision resolution
-                // Direction dir = std::get<1>(collision);
-                // glm::vec2 diff_vector = std::get<2>(collision);
-                // if (dir == LEFT || dir == RIGHT) // horizontal collision
-                // {
-                //     Ball->Velocity.x = -Ball->Velocity.x; // reverse horizontal velocity
-                //     // relocate
-                //     float penetration = Ball->Radius - std::abs(diff_vector.x);
-                //     if (dir == LEFT)
-                //         Ball->Position.x += penetration; // move ball to right
-                //     else
-                //         Ball->Position.x -= penetration; // move ball to left;
-                // }
-                // else // vertical collision
-                // {
-                //     Ball->Velocity.y = -Ball->Velocity.y; // reverse vertical velocity
-                //     // relocate
-                //     float penetration = Ball->Radius - std::abs(diff_vector.y);
-                //     if (dir == UP)
-                //         Ball->Position.y -= penetration; // move ball bback up
-                //     else
-                //         Ball->Position.y += penetration; // move ball back down
-                // }               
+                }         
             }
         }    
     }
 
-    for (GameObject &box : this->Levels[this->Level].Zappers)
+    // for (GameObject &box : this->Levels[this->Level].Zappers)
+    // {
+    //     Collision collision = CheckCollision(*Ball, box);
+    //     if(std::get<0>(collision))
+    //     {
+    //         ResetPlayer();
+    //         this->Lives--;
+    //                     // collision resolution
+    //             Direction dir = std::get<1>(collision);
+    //             glm::vec2 diff_vector = std::get<2>(collision);
+    //             if (dir == LEFT || dir == RIGHT) // horizontal collision
+    //             {
+    //                 Ball->Velocity.x = -Ball->Velocity.x; // reverse horizontal velocity
+    //                 // relocate
+    //                 float penetration = Ball->Radius - std::abs(diff_vector.x);
+    //                 if (dir == LEFT)
+    //                     Ball->Position.x += penetration; // move ball to right
+    //                 else
+    //                     Ball->Position.x -= penetration; // move ball to left;
+    //             }
+    //             else // vertical collision
+    //             {
+    //                 Ball->Velocity.y = -Ball->Velocity.y; // reverse vertical velocity
+    //                 // relocate
+    //                 float penetration = Ball->Radius - std::abs(diff_vector.y);
+    //                 if (dir == UP)
+    //                     Ball->Position.y -= penetration; // move ball bback up
+    //                 else
+    //                     Ball->Position.y += penetration; // move ball back down
+    //             }   
+    //     }       
+    // }
+
+    // for (BallObject &ball : this->Levels[this->Level].ZapperBalls)
+    // {
+    //     if(CheckCollisionBalls(*Ball,ball))
+    //     {
+    //         ResetPlayer();
+    //         this->Lives--;
+    //     }
+    // }
+
+    for (std::pair<GameObject, std::pair<BallObject, BallObject>> &boxi : this->Levels[this->Level].ZapperObjects)
     {
-        Collision collision = CheckCollision(*Ball, box);
-        if(std::get<0>(collision))
+        GameObject box = boxi.first;
+        glm::vec2 end1 = boxi.second.first.Position;
+        glm::vec2 end2 = boxi.second.second.Position;
+        bool collision = CheckCollisionNonAABB(*Ball, box,end1,end2);
+        if (collision)
         {
             ResetPlayer();
             this->Lives--;
-                        // collision resolution
-                Direction dir = std::get<1>(collision);
-                glm::vec2 diff_vector = std::get<2>(collision);
-                if (dir == LEFT || dir == RIGHT) // horizontal collision
-                {
-                    Ball->Velocity.x = -Ball->Velocity.x; // reverse horizontal velocity
-                    // relocate
-                    float penetration = Ball->Radius - std::abs(diff_vector.x);
-                    if (dir == LEFT)
-                        Ball->Position.x += penetration; // move ball to right
-                    else
-                        Ball->Position.x -= penetration; // move ball to left;
-                }
-                else // vertical collision
-                {
-                    Ball->Velocity.y = -Ball->Velocity.y; // reverse vertical velocity
-                    // relocate
-                    float penetration = Ball->Radius - std::abs(diff_vector.y);
-                    if (dir == UP)
-                        Ball->Position.y -= penetration; // move ball bback up
-                    else
-                        Ball->Position.y += penetration; // move ball back down
-                }   
-        }       
-    }
+            // collision resolution
+            // Direction dir = std::get<1>(collision);
+            // glm::vec2 diff_vector = std::get<2>(collision);
+            // if (dir == LEFT || dir == RIGHT) // horizontal collision
+            // {
+            //     Ball->Velocity.x = -Ball->Velocity.x; // reverse horizontal velocity
+            //     // relocate
+            //     float penetration = Ball->Radius - std::abs(diff_vector.x);
+            //     if (dir == LEFT)
+            //         Ball->Position.x += penetration; // move ball to right
+            //     else
+            //         Ball->Position.x -= penetration; // move ball to left;
+            // }
+            // else // vertical collision
+            // {
+            //     Ball->Velocity.y = -Ball->Velocity.y; // reverse vertical velocity
+            //     // relocate
+            //     float penetration = Ball->Radius - std::abs(diff_vector.y);
+            //     if (dir == UP)
+            //         Ball->Position.y -= penetration; // move ball bback up
+            //     else
+            //         Ball->Position.y += penetration; // move ball back down
+            // }
+        }
 
-    for (BallObject &ball : this->Levels[this->Level].ZapperBalls)
-    {
+        BallObject ball = boxi.second.first;
+        if(CheckCollisionBalls(*Ball,ball))
+        {
+            ResetPlayer();
+            this->Lives--;
+        }
+
+        ball = boxi.second.second;
         if(CheckCollisionBalls(*Ball,ball))
         {
             ResetPlayer();
             this->Lives--;
         }
     }
+
     // check collisions for player pad (unless stuck)
     // Collision result = CheckCollision(*Ball, *Player);
     // if (!Ball->Stuck && std::get<0>(result))
@@ -500,6 +551,36 @@ bool CheckCollision(GameObject &one, GameObject &two) // AABB - AABB collision
         two.Position.y + two.Size.y >= one.Position.y;
     // collision only if on both axes
     return collisionX && collisionY;
+}
+
+bool CheckCollisionNonAABB(BallObject &one, GameObject &two, glm::vec2 end1, glm::vec2 end2)
+{
+    float x = one.Position.x;
+    float y = one.Position.y;
+
+    float x1 = end1.x;
+    float x2 = end2.x;
+    float y1 = end1.y;
+    float y2 = end2.y;
+
+    float a = y2 - y1;
+    float b = x1 - x2;
+    float c = (x2*y1) - (x1*y2);
+    float normaliser = glm::sqrt(a*a + b*b);
+
+    if(x < x1 and x < x2 and x1 != x2) return false;
+    if(x > x1 and x > x2 and x1 != x2) return false;
+    if(y < y1 and y < y2 and x1 != x2) return false;
+    if(y > y1 and y > y2 and x1 != x2) return false;
+
+    float d = (a*x + b*y + c) / normaliser;
+    d = abs(d);
+
+    // printf("%f\n",d);
+
+    if(d <= (BALL_RADIUS - two.Size.x/2)) return true;
+    
+    return false;
 }
 
 bool CheckCollisionBalls(BallObject &one, BallObject &two)

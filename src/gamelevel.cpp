@@ -49,13 +49,21 @@ void GameLevel::Draw(SpriteRenderer &renderer)
         if (!tile.Destroyed)
             tile.Draw(renderer);
 
-    for (GameObject &tile : this->Zappers)
-        if (!tile.Destroyed)
-            tile.Draw(renderer);
+    // for (GameObject &tile : this->Zappers)
+    //     if (!tile.Destroyed)
+    //         tile.Draw(renderer);
 
-    for (GameObject &tile : this->ZapperBalls)
-        if (!tile.Destroyed)
-            tile.Draw(renderer);
+    // for (GameObject &tile : this->ZapperBalls)
+    //     if (!tile.Destroyed)
+    //         tile.Draw(renderer);
+
+        for (std::pair<GameObject,std::pair<BallObject,BallObject>> &tile : this->ZapperObjects)
+        {
+            tile.first.Draw(renderer);
+            tile.second.first.Draw(renderer);
+            tile.second.second.Draw(renderer);
+        }
+
 }
 
 bool GameLevel::IsCompleted()
@@ -73,10 +81,11 @@ void GameLevel::initZapper( unsigned int levelWidth, unsigned int levelHeight)
     for(unsigned int i = 0; i < 100; i++)
     {
         glm::vec2 pos(600 + (1200)*i, levelHeight - 350);
-        glm::vec2 size(8, 200);;
+        glm::vec2 size(8, 200);
         GameObject obj(pos, size, ResourceManager::GetTexture("white"), glm::vec3(1.0f, 1.0f, 1.0f));
         obj.isZapper = true;
-        this->Zappers.push_back(obj);
+
+        obj.center = pos  + (size /2.0f);
 
         glm::vec2 ball1Pos = glm::vec2(pos.x + size.x/2.0f - BALL_RADIUS, pos.y - BALL_RADIUS); 
         BallObject ball1(ball1Pos, BALL_RADIUS, INITIAL_BALL_VELOCITY,ResourceManager::GetTexture("whitecircle"));
@@ -84,8 +93,14 @@ void GameLevel::initZapper( unsigned int levelWidth, unsigned int levelHeight)
         glm::vec2 ball2Pos = glm::vec2(pos.x + size.x/2.0f - BALL_RADIUS, pos.y + size.y - BALL_RADIUS); 
         BallObject ball2(ball2Pos, BALL_RADIUS, INITIAL_BALL_VELOCITY,ResourceManager::GetTexture("whitecircle"));
 
-        this->ZapperBalls.push_back(ball1);
-        this->ZapperBalls.push_back(ball2);
+        // obj.Balls.push_back(ball1);
+        // obj.Balls.push_back(ball2);
+
+        this->Zappers.push_back(obj);
+        // this->ZapperBalls.push_back(ball1);
+        // this->ZapperBalls.push_back(ball2);
+
+        this->ZapperObjects.push_back({obj,{ball1,ball2}});
     }
 }
 
