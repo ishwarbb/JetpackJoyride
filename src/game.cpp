@@ -76,11 +76,11 @@ void Game::Init()
     ResourceManager::LoadTexture("../textures/whitecircle.png", true, "whitecircle");
 
     // load levels
-    GameLevel zero; zero.Load("../levels/zero.lvl", this->Width, this->Height );
-    GameLevel one; one.Load("../levels/one.lvl", this->Width, this->Height );
-    GameLevel two; two.Load("../levels/two.lvl", this->Width, this->Height );
-    GameLevel three; three.Load("../levels/three.lvl", this->Width, this->Height );
-    GameLevel four; four.Load("../levels/four.lvl", this->Width, this->Height );
+    GameLevel zero; zero.Load("../levels/zero.lvl", this->Width, this->Height,4);
+    GameLevel one; one.Load("../levels/one.lvl", this->Width, this->Height,0);
+    GameLevel two; two.Load("../levels/two.lvl", this->Width, this->Height ,1);
+    GameLevel three; three.Load("../levels/three.lvl", this->Width, this->Height,2);
+    GameLevel four; four.Load("../levels/four.lvl", this->Width, this->Height,3);
     this->Levels.push_back(one);
     this->Levels.push_back(two);
     this->Levels.push_back(three);
@@ -289,8 +289,18 @@ void Game::Render(float offset)
             {
                 one.ZapperObjects[i].first.Position[0] = one.ZapperObjects[i].first.Position[0] - offset;
                 one.ZapperObjects[i].first.center.x -= offset;
-                one.ZapperObjects[i].first.Rotation = one.ZapperObjects[i].first.Rotation +1;
-                one.ZapperObjects[i].first.Rotation = one.ZapperObjects[i].first.Rotation +1;
+                if( one.ZapperObjects[i].first.isRotate)
+                    one.ZapperObjects[i].first.Rotation = one.ZapperObjects[i].first.Rotation +1;
+                if( one.ZapperObjects[i].first.isUpandDown)
+                {
+                    one.ZapperObjects[i].first.Position[0] += static_cast<float>(sin(glm::radians(glfwGetTime()))) ;
+                    one.ZapperObjects[i].first.center.x = one.ZapperObjects[i].first.Position[0];
+                }
+                if( one.ZapperObjects[i].first.isBackandForth)
+                {
+                    one.ZapperObjects[i].first.Position[0] += static_cast<float>(cos(glm::radians(glfwGetTime()))) ;
+                    one.ZapperObjects[i].first.center.x = one.ZapperObjects[i].first.Position[0];
+                }
 
                 float rot = glm::radians(one.ZapperObjects[i].first.Rotation);
                 // float rot = glm::radians(0.0f);;
@@ -375,21 +385,22 @@ void Game::Render(float offset)
 
 void Game::ResetLevel()
 {
-    this->Lives = 3;
+    this->Lives = 30;
     this->Total_Coins += this->Coins;
     this->Coins = 0;
     this->Distance_Travelled = 0;
     this->Levels[this->Level].Zappers.clear();
     this->Levels[this->Level].ZapperBalls.clear();
     this->Levels[this->Level].ZapperObjects.clear();
+        this->Levels[this->Level].Road.clear();
     if (this->Level == 0)
-        this->Levels[0].Load("../levels/one.lvl", this->Width, this->Height );
+        this->Levels[0].Load("../levels/one.lvl", this->Width, this->Height,0);
     else if (this->Level == 1)
-        this->Levels[1].Load("../levels/two.lvl", this->Width, this->Height );
+        this->Levels[1].Load("../levels/two.lvl", this->Width, this->Height,1 );
     else if (this->Level == 2)
-        this->Levels[2].Load("../levels/three.lvl", this->Width, this->Height );
+        this->Levels[2].Load("../levels/three.lvl", this->Width, this->Height,2 );
     else if (this->Level == 3)
-        this->Levels[3].Load("../levels/four.lvl", this->Width, this->Height );
+        this->Levels[3].Load("../levels/four.lvl", this->Width, this->Height,3 );
 }
 
 void Game::ResetPlayer()
@@ -486,15 +497,16 @@ void Game::DoCollisions()
             // collision resolution
             // Direction dir = std::get<1>(collision);
             // glm::vec2 diff_vector = std::get<2>(collision);
+            int penetration = 5;
             // if (dir == LEFT || dir == RIGHT) // horizontal collision
             // {
             //     Ball->Velocity.x = -Ball->Velocity.x; // reverse horizontal velocity
             //     // relocate
             //     float penetration = Ball->Radius - std::abs(diff_vector.x);
             //     if (dir == LEFT)
-            //         Ball->Position.x += penetration; // move ball to right
+                    // Ball->Position.x += penetration; // move ball to right
             //     else
-            //         Ball->Position.x -= penetration; // move ball to left;
+                    Ball->Position.x -= penetration; // move ball to left;
             // }
             // else // vertical collision
             // {
@@ -502,7 +514,7 @@ void Game::DoCollisions()
             //     // relocate
             //     float penetration = Ball->Radius - std::abs(diff_vector.y);
             //     if (dir == UP)
-            //         Ball->Position.y -= penetration; // move ball bback up
+                    Ball->Position.y -= penetration; // move ball bback up
             //     else
             //         Ball->Position.y += penetration; // move ball back down
             // }
@@ -556,8 +568,8 @@ bool CheckCollision(GameObject &one, GameObject &two) // AABB - AABB collision
 
 bool CheckCollisionNonAABB(BallObject &one, GameObject &two, glm::vec2 end1, glm::vec2 end2)
 {
-    float x = one.Position.x;
-    float y = one.Position.y;
+    float x = one.Position.x + BALL_RADIUS;
+    float y = one.Position.y + BALL_RADIUS;
 
     float x1 = end1.x;
     float x2 = end2.x;
@@ -569,10 +581,10 @@ bool CheckCollisionNonAABB(BallObject &one, GameObject &two, glm::vec2 end1, glm
     float c = (x2*y1) - (x1*y2);
     float normaliser = glm::sqrt(a*a + b*b);
 
-    if(x < x1 and x < x2 and x1 != x2) return false;
-    if(x > x1 and x > x2 and x1 != x2) return false;
-    if(y < y1 and y < y2 and x1 != x2) return false;
-    if(y > y1 and y > y2 and x1 != x2) return false;
+    if(x <= x1 and x <= x2 ) return false;
+    if(x >= x1 and x >= x2 ) return false;
+    if(y <= y1 and y <= y2 ) return false;
+    if(y >= y1 and y >= y2 ) return false;
 
     float d = (a*x + b*y + c) / normaliser;
     d = abs(d);

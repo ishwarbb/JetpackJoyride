@@ -30,6 +30,9 @@ public:
     bool        Destroyed;
 
     bool isZapper;
+    bool isRotate;
+    bool isBackandForth;
+    bool isUpandDown;
     // std::vector<BallObject> Balls;
     glm::vec2 center;
 

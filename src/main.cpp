@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
         // --------------------
         float currentFrame = glfwGetTime();
         // float offset = (float) 0.5 * glfwGetTime();
-        float offset = (float) 10 ;
+        float offset = (float) 15 ;
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         glfwPollEvents();

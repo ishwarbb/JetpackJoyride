@@ -10,17 +10,18 @@
 #include "ball_object.h"
 #include <GLFW/glfw3.h>
 
+#include <bits/stdc++.h>
 #include <fstream>
 #include <sstream>
 
 
-void GameLevel::Load(const char *file, unsigned int levelWidth, unsigned int levelHeight)
+void GameLevel::Load(const char *file, unsigned int levelWidth, unsigned int levelHeight, int level)
 {
     // clear old data
     this->Bricks.clear();
     // load from file
     unsigned int tileCode;
-    GameLevel level;
+
     std::string line;
     std::ifstream fstream(file);
     std::vector<std::vector<unsigned int>> tileData;
@@ -36,9 +37,9 @@ void GameLevel::Load(const char *file, unsigned int levelWidth, unsigned int lev
         }
         if (tileData.size() > 0)
         {
-            this->init(tileData, levelWidth, levelHeight);
+            this->init(tileData, levelWidth, levelHeight, level);
             this->initRoad(levelWidth,levelHeight);
-            this->initZapper(levelWidth,levelHeight);
+            // this->initZapper(levelWidth,levelHeight);
         }
     }
 }
@@ -76,14 +77,19 @@ bool GameLevel::IsCompleted()
     return false;
 }
 
-void GameLevel::initZapper( unsigned int levelWidth, unsigned int levelHeight)
+std::vector<float> Angles = {45.0f,91.0f,135.0f};
+
+void GameLevel::initZapper( unsigned int levelWidth, unsigned int levelHeight, int level)
 {
-    for(unsigned int i = 0; i < 100; i++)
-    {
-        glm::vec2 pos(600 + (1200)*i, levelHeight - 350);
+        glm::vec2 pos(levelWidth, levelHeight);
         glm::vec2 size(8, 200);
         GameObject obj(pos, size, ResourceManager::GetTexture("white"), glm::vec3(1.0f, 1.0f, 1.0f));
         obj.isZapper = true;
+        obj.isRotate = false;
+        if(level > 0) obj.isRotate = rand()%2;
+        if(level > 1) obj.isBackandForth = rand()%2;
+        if(level > 1) obj.isUpandDown = rand()%2;
+        obj.Rotation = Angles[rand()%3];
 
         obj.center = pos  + (size /2.0f);
 
@@ -101,7 +107,6 @@ void GameLevel::initZapper( unsigned int levelWidth, unsigned int levelHeight)
         // this->ZapperBalls.push_back(ball2);
 
         this->ZapperObjects.push_back({obj,{ball1,ball2}});
-    }
 }
 
 void GameLevel::initRoad( unsigned int levelWidth, unsigned int levelHeight)
@@ -115,40 +120,71 @@ void GameLevel::initRoad( unsigned int levelWidth, unsigned int levelHeight)
     }
 }
 
-void GameLevel::init(std::vector<std::vector<unsigned int>> tileData, unsigned int levelWidth, unsigned int levelHeight)
+std::vector<std::vector<int>> coins3 = {{1, 1, 1, 0, 0, 0, 0, 0},
+                                    {0, 0, 0, 0, 0, 1, 1, 1},
+                                    {0, 0, 1, 1, 1, 1, 0, 0},
+                                    {1, 1, 1, 1, 1, 1, 1, 1},
+                                    {0, 0, 0, 0, 0, 0, 0, 0}};
+
+std::vector<std::vector<int>> coins2 = {{0, 1, 0, 0, 0, 0, 1, 0},
+                                        {0, 0, 0, 1, 1, 0, 0, 0},
+                                        {0, 0, 1, 0, 0, 1, 0, 0},
+                                        {1, 1, 0, 0, 0, 0, 1, 1},
+                                        {0, 0, 0, 0, 0, 0, 0, 0},
+                                        {0, 0, 0, 0, 0, 0, 0, 0},
+                                        {0, 0, 0, 0, 0, 0, 0, 0}
+                                        };
+
+std::vector<std::vector<int>> zappers = {{0, 0, 0, 0, 0, 0, 2, 0},
+                                        {0, 2, 0, 0, 0, 0, 0, 0},
+                                        // {0, 0, 2, 0, 0, 2, 0, 0},
+                                        {0, 0, 2, 0, 0, 0, 0, 0},
+                                        {0, 0, 0, 0, 0, 2, 0, 0},
+                                        {0, 2, 0, 0, 0, 0, 2, 0}
+                                        };
+
+void GameLevel::init(std::vector<std::vector<unsigned int>> tileData, unsigned int levelWidth, unsigned int levelHeight, int level)
 {
     // calculate dimensions
     unsigned int height = tileData.size();
     unsigned int width = tileData[0].size(); // note we can index vector at [0] since this function is only called if height > 0
     // float unit_width = levelWidth /( 2 * static_cast<float>(width));
-    float unit_height = levelHeight / height; 
+    float unit_height = 600 / 8;; 
     float unit_width = unit_height;
 
     // initialize level tiles based on tileData	
 	
     for (unsigned int x = 0; x < 100; ++x)
     {
-        for (unsigned int y = 0; y < height; ++y)
+        std::vector<int> col;
+
+        if(x%8 < 1) col = coins3[rand()%coins3.size()];
+        else if(x%8 < 7) col = coins2[rand()%coins2.size()];
+        else col = zappers[rand()%zappers.size()];
+
+        for (unsigned int y = 0; y < col.size(); ++y)
         {
-            int x_coord = x % width;
+            // int x_coord = x % width;
             // float offset = (float) 50 * glfwGetTime();
             float offset = 0;
             // check block type from level data (2D level array)
-            if (tileData[y][x_coord] == 1) // solid
+            if (col[y] == 1) // solid
             {
                 glm::vec2 pos((levelWidth/2) - offset + unit_width * x, unit_height * y);
                 glm::vec2 size(unit_width, unit_height);
-                GameObject obj(pos, size, ResourceManager::GetTexture("block_solid"), glm::vec3(0.8f, 0.8f, 0.7f));
-                obj.IsSolid = true;
-                // this->Bricks.push_back(obj);
+                GameObject obj(pos, size, ResourceManager::GetTexture("coin"), glm::vec3(0.8f, 0.8f, 0.7f));
+                // obj.IsSolid = true;
+                this->Bricks.push_back(obj);
             }
-            else if (tileData[y][x_coord] == 2)	// non-solid; now determine its color based on level data
+            else if (col[y] == 2)	// non-solid; now determine its color based on level data
             {
                 glm::vec3 color = glm::vec3(1.0f); // original: white
 
                 glm::vec2 pos((levelWidth/2) - offset + unit_width * x, unit_height * y);
                 glm::vec2 size(unit_width, unit_height);
-                this->Bricks.push_back(GameObject(pos, size, ResourceManager::GetTexture("coin"), glm::vec3(1.0f, 1.0f, 1.0f)));
+
+                this->initZapper((levelWidth/2) - offset + unit_width * x, unit_height * y,level);
+                // this->Bricks.push_back(GameObject(pos, size, ResourceManager::GetTexture("coin"), glm::vec3(1.0f, 1.0f, 1.0f)));
             }
         }
     }
