@@ -381,6 +381,7 @@ void Game::ResetLevel()
     this->Distance_Travelled = 0;
     this->Levels[this->Level].Zappers.clear();
     this->Levels[this->Level].ZapperBalls.clear();
+    this->Levels[this->Level].ZapperObjects.clear();
     if (this->Level == 0)
         this->Levels[0].Load("../levels/one.lvl", this->Width, this->Height );
     else if (this->Level == 1)
