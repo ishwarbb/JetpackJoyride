@@ -14,6 +14,9 @@
 #include "text_renderer.h"
 #include <bits/stdc++.h>
 
+glm::vec2 da = glm::vec2(0.0f,0.0f);
+glm::vec2 db = glm::vec2(0.0f,0.0f);
+
 void
 PrintMat4( glm::mat4 mat )
 {
@@ -55,6 +58,7 @@ void Game::Init()
     ResourceManager::LoadShader("../shaders/sprite.vs", "../shaders/sprite.frag", nullptr, "sprite");
     ResourceManager::LoadShader("../shaders/ball.vs", "../shaders/ball.frag", nullptr, "ballshader");
     ResourceManager::LoadShader("../shaders/ballshadow.vs", "../shaders/ballshadow.frag", nullptr, "ballshadowshader");
+    ResourceManager::LoadShader("../shaders/bar.vs", "../shaders/bar.frag", nullptr, "bar");
     // configure shaders
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(this->Width), 
         static_cast<float>(this->Height), 0.0f, -1.0f, 1.0f);
@@ -267,7 +271,7 @@ void Game::Render(float offset)
     {
         // draw background
         Texture2D background = ResourceManager::GetTexture("background");
-        Renderer->DrawSprite(background, 
+        Renderer->DrawSprite(background, da,db,
             glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f
         );
 
@@ -308,6 +312,7 @@ void Game::Render(float offset)
             {
                 one.ZapperObjects[i].first.Position[0] = one.ZapperObjects[i].first.Position[0] - offset;
                 one.ZapperObjects[i].first.center.x -= offset;
+
                 if( one.ZapperObjects[i].first.isRotate)
                     one.ZapperObjects[i].first.Rotation = one.ZapperObjects[i].first.Rotation +1;
                 if( one.ZapperObjects[i].first.isUpandDown)
@@ -332,6 +337,12 @@ void Game::Render(float offset)
  
             one.ZapperObjects[i].second.second.Position.x = center.x - (static_cast<float>(sin(rot)) * ( l/ 2.0f)) - (BALL_RADIUS) ;
             one.ZapperObjects[i].second.second.Position.y = center.y + (static_cast<float>(cos(rot)) * ( l/ 2.0f)) - (BALL_RADIUS);
+
+            one.ZapperObjects[i].first.end1 = one.ZapperObjects[i].second.first.Position + BALL_RADIUS;
+            one.ZapperObjects[i].first.end2 = one.ZapperObjects[i].second.second.Position + BALL_RADIUS;
+
+            // one.ZapperObjects[i].first.end1 = one.ZapperObjects[i].second.first.Position - BALL_RADIUS;
+            // one.ZapperObjects[i].first.end2 = one.ZapperObjects[i].second.second.Position - BALL_RADIUS;
             }
 
         // this->Levels[this->Level] = one;
@@ -379,7 +390,7 @@ void Game::Render(float offset)
     if (this->State == GAME_MENU)
     {
         Text->RenderText("Press ENTER to start", 250.0f, Height / 2, 1.0f);
-        Text->RenderText("Press W or S to select level", 245.0f, Height / 2 + 20.0f, 0.75f);
+        Text->RenderText("Use UP ARROW for controls", 245.0f, Height / 2 + 20.0f, 0.75f);
     }
 
     if (this->State == GAME_WIN)

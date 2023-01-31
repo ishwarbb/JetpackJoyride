@@ -20,7 +20,7 @@ SpriteRenderer::~SpriteRenderer()
     glDeleteVertexArrays(1, &this->quadVAO);
 }
 
-void SpriteRenderer::DrawSprite(Texture2D &texture, glm::vec2 position, glm::vec2 size, float rotate, glm::vec3 color)
+void SpriteRenderer::DrawSprite(Texture2D &texture, glm::vec2 position, glm::vec2 end1, glm::vec2 end2, glm::vec2 size, float rotate, glm::vec3 color)
 {
     // prepare transformations
     this->shader.Use();
@@ -43,6 +43,8 @@ void SpriteRenderer::DrawSprite(Texture2D &texture, glm::vec2 position, glm::vec
     // center.y = 200;
 
     this->shader.SetVector2f("Center", center);
+    this->shader.SetVector2f("end2", glm::vec2(end2.x,600 - end2.y));
+    this->shader.SetVector2f("end1", glm::vec2(end1.x,600 - end1.y));
     
     // this->shader.SetVector2f("Center", position + size / 2.0f);
 

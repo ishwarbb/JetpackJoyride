@@ -35,6 +35,8 @@ public:
     bool isUpandDown;
     // std::vector<BallObject> Balls;
     glm::vec2 center;
+    glm::vec2 end2;
+    glm::vec2 end1;
 
     // render state
     Texture2D   Sprite;	

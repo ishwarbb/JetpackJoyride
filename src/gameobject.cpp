@@ -17,5 +17,5 @@ GameObject::GameObject(glm::vec2 pos, glm::vec2 size, Texture2D sprite, glm::vec
 
 void GameObject::Draw(SpriteRenderer &renderer)
 {
-    renderer.DrawSprite(this->Sprite, this->Position, this->Size, this->Rotation, this->Color);
+    renderer.DrawSprite(this->Sprite, this->Position,this->end1, this->end2,this->Size, this->Rotation, this->Color);
 }

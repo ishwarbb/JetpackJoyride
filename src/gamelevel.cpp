@@ -53,6 +53,14 @@ void GameLevel::Draw(SpriteRenderer &renderer)
     ResourceManager::GetShader("ballshader").Use().SetInteger("image", 0);
     ResourceManager::GetShader("ballshader").SetMatrix4("projection", projection);
 
+
+    Shader barShader = ResourceManager::GetShader("bar");
+    SpriteRenderer * BarRenderer = new SpriteRenderer(barShader);
+    // glm::mat4 projection = glm::ortho(0.0f, 800.0f, 
+    //     600.0f, 0.0f, -1.0f, 1.0f);
+    ResourceManager::GetShader("bar").Use().SetInteger("image", 0);
+    ResourceManager::GetShader("bar").SetMatrix4("projection", projection);
+
     for (GameObject &tile : this->Bricks)
         if (!tile.Destroyed)
             tile.Draw(renderer);
@@ -64,14 +72,19 @@ void GameLevel::Draw(SpriteRenderer &renderer)
     // for (GameObject &tile : this->ZapperBalls)
     //     if (!tile.Destroyed)
     //         tile.Draw(renderer);
+    int i = 0;
 
         for (std::pair<GameObject,std::pair<BallObject,BallObject>> &tile : this->ZapperObjects)
         {
-            tile.first.Draw(renderer);
+            // tile.first.Draw(renderer);
+            tile.first.Draw(*BarRenderer);
+
             tile.second.first.Draw(*BallRenderer);
             // tile.second.first.Draw(renderer);
             tile.second.second.Draw(*BallRenderer);
             // tile.second.second.Draw(renderer);
+
+            i++;
         }
 
 }
@@ -91,7 +104,7 @@ std::vector<float> Angles = {45.0f,91.0f,135.0f};
 void GameLevel::initZapper( unsigned int levelWidth, unsigned int levelHeight, int level)
 {
         glm::vec2 pos(levelWidth, levelHeight);
-        glm::vec2 size(8, 200);
+        glm::vec2 size(200, 200);
         GameObject obj(pos, size, ResourceManager::GetTexture("white"), glm::vec3(1.0f, 1.0f, 1.0f));
         obj.isZapper = true;
         obj.isRotate = false;
@@ -106,10 +119,15 @@ void GameLevel::initZapper( unsigned int levelWidth, unsigned int levelHeight, i
 
         glm::vec2 ball1Pos = glm::vec2(pos.x + size.x/2.0f - BALL_RADIUS, pos.y - BALL_RADIUS); 
         BallObject ball1(ball1Pos, BALL_RADIUS, INITIAL_BALL_VELOCITY,ResourceManager::GetTexture("whitecircle"));
+        obj.end1 =glm::vec2(pos.x + size.x/2.0f , pos.y );
+        // obj.end1 =glm::vec2(200.0,200.0);
+        // obj.end1 =obj.center;
         ball1.Color = glm::vec4 (1.0f,1.0f,1.0f,1.0f);
 
-        glm::vec2 ball2Pos = glm::vec2(pos.x + size.x/2.0f - BALL_RADIUS, pos.y + size.y - BALL_RADIUS); 
+        glm::vec2 ball2Pos = glm::vec2(pos.x + size.x/2.0f - BALL_RADIUS, pos.y - BALL_RADIUS);
         BallObject ball2(ball2Pos, BALL_RADIUS, INITIAL_BALL_VELOCITY,ResourceManager::GetTexture("whitecircle"));
+        obj.end2 = glm::vec2(pos.x + size.x/2.0f, pos.y );
+        // obj.end1 =glm::vec2(600.0,600.0);
         ball2.Color = glm::vec4 (1.0f,1.0f,1.0f,1.0f);
 
         // obj.Balls.push_back(ball1);

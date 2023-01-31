@@ -6,6 +6,8 @@ out vec4 color;
 uniform vec2 Center;
 uniform sampler2D image;
 uniform vec3 spriteColor;
+uniform vec2 end1;
+uniform vec2 end2;
 
 void main()
 {   
