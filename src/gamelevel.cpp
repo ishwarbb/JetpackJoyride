@@ -53,9 +53,9 @@ void GameLevel::Draw(SpriteRenderer &renderer)
     ResourceManager::GetShader("ballshader").Use().SetInteger("image", 0);
     ResourceManager::GetShader("ballshader").SetMatrix4("projection", projection);
 
-    // for (GameObject &tile : this->Bricks)
-    //     if (!tile.Destroyed)
-    //         tile.Draw(renderer);
+    for (GameObject &tile : this->Bricks)
+        if (!tile.Destroyed)
+            tile.Draw(renderer);
 
     // for (GameObject &tile : this->Zappers)
     //     if (!tile.Destroyed)

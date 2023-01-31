@@ -28,6 +28,7 @@ PrintMat4( glm::mat4 mat )
 // GameObject      *Player;
 SpriteRenderer  *Renderer;
 BallObject     *Ball; 
+GameObject     *BallShadow; 
 TextRenderer  *Text;
 
 glm::mat4 transform = glm::mat4(1.0f); 
@@ -44,6 +45,7 @@ Game::~Game()
 {
     delete Renderer;
     // delete Player;
+    delete BallShadow;
     delete Ball;
 }
 
@@ -52,6 +54,7 @@ void Game::Init()
     // load shaders
     ResourceManager::LoadShader("../shaders/sprite.vs", "../shaders/sprite.frag", nullptr, "sprite");
     ResourceManager::LoadShader("../shaders/ball.vs", "../shaders/ball.frag", nullptr, "ballshader");
+    ResourceManager::LoadShader("../shaders/ballshadow.vs", "../shaders/ballshadow.frag", nullptr, "ballshadowshader");
     // configure shaders
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(this->Width), 
         static_cast<float>(this->Height), 0.0f, -1.0f, 1.0f);
@@ -96,9 +99,14 @@ void Game::Init()
     // Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
 
     glm::vec2 ballPos = + glm::vec2(
-        10, 
+        60, 
         0 );
     Ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY,ResourceManager::GetTexture("face"));
+    // BallShadow = new BallObject(Ball->Position - glm::vec2(30,30), BALL_RADIUS + 30, INITIAL_BALL_VELOCITY,ResourceManager::GetTexture("whitecircle"));
+    // BallShadow->Radius = BALL_RADIUS + 30;
+
+    float BallShadowSize = 2 * BALL_RADIUS;
+    BallShadow = new GameObject(ballPos -  glm::vec2(30,30), glm::vec2(60 + BallShadowSize,60 + BallShadowSize), ResourceManager::GetTexture("whitecircle"));
 
     Text = new TextRenderer(this->Width, this->Height);
     Text->Load("../fonts/ocraext.ttf", 24);
@@ -112,11 +120,15 @@ void Game::Init()
     road_pos = 0;
     road_width = this->Width;
     Ball->Acceleration = glm::vec2(0,9.8);
+    // BallShadow->Acceleration = glm::vec2(0,9.8);
 }
 
 void Game::Update(float dt)
 {
     Ball->Move(dt, this->Width, this->Height);
+    // BallShadow->Move(dt, this->Width, this->Height);
+
+    BallShadow->Position = Ball->Position - glm::vec2(30,30);
     // check for collisions
     this->DoCollisions();
     // check loss condition
@@ -168,7 +180,9 @@ void Game::Update(float dt)
 
     if(Ball->Velocity.y > 0)
     {
+        this->Ball_Shadow = 0;
         Ball = new BallObject(Ball->Position, BALL_RADIUS, Ball->Velocity,ResourceManager::GetTexture("face"));
+        // BallShadow = new BallObject(Ball->Position - glm::vec2(30,30), BALL_RADIUS, Ball->Velocity,ResourceManager::GetTexture("whitecircle"));
     }
 }
 
@@ -182,7 +196,10 @@ void Game::ProcessInput(float dt)
         if (this->Keys[GLFW_KEY_UP])
         {
             Ball->Velocity.y -= 55.0f;
+            // BallShadow->Velocity.y -= 55.0f;
+            this->Ball_Shadow = 1;
             Ball = new BallObject(Ball->Position, BALL_RADIUS, Ball->Velocity,ResourceManager::GetTexture("redface"));
+            // BallShadow = new BallObject(Ball->Position, BALL_RADIUS, Ball->Velocity,ResourceManager::GetTexture("whitecircle"));
         }
     }
 
@@ -249,16 +266,16 @@ void Game::Render(float offset)
     if(this->State == GAME_ACTIVE || GAME_MENU)
     {
         // draw background
-        // Texture2D background = ResourceManager::GetTexture("background");
-        // Renderer->DrawSprite(background, 
-        //     glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f
-        // );
+        Texture2D background = ResourceManager::GetTexture("background");
+        Renderer->DrawSprite(background, 
+            glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f
+        );
 
-        // for (GameObject &tile : this->Levels[this->Level].Road)
-        // {
-        // if (!tile.Destroyed)
-        //     tile.Draw(*Renderer);
-        // }
+        for (GameObject &tile : this->Levels[this->Level].Road)
+        {
+        if (!tile.Destroyed)
+            tile.Draw(*Renderer);
+        }
 
         // draw level
         // GameLevel one; one.Load("../levels/one.lvl", this->Width , this->Height );
@@ -323,6 +340,18 @@ void Game::Render(float offset)
 
         // Player->Draw(*Renderer); 
         Ball->Draw(*Renderer);
+
+        Shader ballShadowShader = ResourceManager::GetShader("ballshadowshader");
+        SpriteRenderer* BallShadowRenderer = new SpriteRenderer(ballShadowShader);
+        glm::mat4 projection = glm::ortho(0.0f, 800.0f, 
+            600.0f, 0.0f, -1.0f, 1.0f);
+        ResourceManager::GetShader("ballshadowshader").Use().SetInteger("image", 0);
+        ResourceManager::GetShader("ballshadowshader").SetMatrix4("projection", projection);
+
+        if(this->Ball_Shadow)
+        {
+            BallShadow->Draw(*BallShadowRenderer);
+        }
 
         std::stringstream ss1; 
         std::stringstream ss2; 
@@ -410,7 +439,8 @@ void Game::ResetPlayer()
     // reset player/ball stats
     // Player->Size = PLAYER_SIZE;
     // Player->Position = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
-    Ball->Reset( glm::vec2( 10,0), INITIAL_BALL_VELOCITY);
+    Ball->Reset( glm::vec2( 60,0), INITIAL_BALL_VELOCITY);
+    // BallShadow->Reset( glm::vec2( 10,0), INITIAL_BALL_VELOCITY);
 }
 
 // collision detection
@@ -509,6 +539,7 @@ void Game::DoCollisions()
                     // Ball->Position.x += penetration; // move ball to right
             //     else
                     Ball->Position.x -= penetration; // move ball to left;
+                    // BallShadow->Position.x -= penetration; // move ball to left;
             // }
             // else // vertical collision
             // {
@@ -517,6 +548,7 @@ void Game::DoCollisions()
             //     float penetration = Ball->Radius - std::abs(diff_vector.y);
             //     if (dir == UP)
                     Ball->Position.y -= penetration; // move ball bback up
+                    // BallShadow->Position.y -= penetration; // move ball bback up
             //     else
             //         Ball->Position.y += penetration; // move ball back down
             // }

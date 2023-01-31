@@ -55,6 +55,7 @@ public:
     unsigned int            Total_Coins;
     unsigned int            Length;
     unsigned int            Distance_Travelled;
+    unsigned int            Ball_Shadow;
     bool KeysProcessed[1024];
     // constructor/destructor
     Game(unsigned int width, unsigned int height);
