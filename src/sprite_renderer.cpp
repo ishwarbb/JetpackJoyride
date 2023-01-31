@@ -35,8 +35,22 @@ void SpriteRenderer::DrawSprite(Texture2D &texture, glm::vec2 position, glm::vec
 
     this->shader.SetMatrix4("model", model);
 
+    glm::vec2 center;
+    center.x = position.x + (size.x/2.0f);
+    // center.x = 600;
+
+    center.y = (600 - (position.y + (size.y/2.0f)));
+    // center.y = 200;
+
+    this->shader.SetVector2f("Center", center);
+    
+    // this->shader.SetVector2f("Center", position + size / 2.0f);
+
     // render textured quad
     this->shader.SetVector3f("spriteColor", color);
+    this->shader.SetFloat("xs", texture.Width );
+    this->shader.SetFloat("ys", texture.Height);
+    this->shader.SetFloat("r", 80.0f);
 
     glActiveTexture(GL_TEXTURE0);
     texture.Bind();
@@ -45,6 +59,8 @@ void SpriteRenderer::DrawSprite(Texture2D &texture, glm::vec2 position, glm::vec
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
 }
+
+
 
 void SpriteRenderer::initRenderData()
 {

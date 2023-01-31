@@ -22,7 +22,7 @@ glm::vec2 BallObject::Move(float dt, unsigned int window_width, unsigned int win
     // {
         // move the ball
         this->Position += this->Velocity * dt;
-        this->Velocity.y = this->Velocity.y + 9.8;
+        this->Velocity.y = this->Velocity.y + 29.8;
         // printf("%f",this->Velocity.y);
         // then check if outside window bounds and if so, reverse velocity and restore at correct position
         if (this->Position.x <= 0.0f)

@@ -46,9 +46,16 @@ void GameLevel::Load(const char *file, unsigned int levelWidth, unsigned int lev
 
 void GameLevel::Draw(SpriteRenderer &renderer)
 {
-    for (GameObject &tile : this->Bricks)
-        if (!tile.Destroyed)
-            tile.Draw(renderer);
+    Shader ballShader = ResourceManager::GetShader("ballshader");
+    SpriteRenderer * BallRenderer = new SpriteRenderer(ballShader);
+    glm::mat4 projection = glm::ortho(0.0f, 800.0f, 
+        600.0f, 0.0f, -1.0f, 1.0f);
+    ResourceManager::GetShader("ballshader").Use().SetInteger("image", 0);
+    ResourceManager::GetShader("ballshader").SetMatrix4("projection", projection);
+
+    // for (GameObject &tile : this->Bricks)
+    //     if (!tile.Destroyed)
+    //         tile.Draw(renderer);
 
     // for (GameObject &tile : this->Zappers)
     //     if (!tile.Destroyed)
@@ -61,8 +68,10 @@ void GameLevel::Draw(SpriteRenderer &renderer)
         for (std::pair<GameObject,std::pair<BallObject,BallObject>> &tile : this->ZapperObjects)
         {
             tile.first.Draw(renderer);
-            tile.second.first.Draw(renderer);
-            tile.second.second.Draw(renderer);
+            tile.second.first.Draw(*BallRenderer);
+            // tile.second.first.Draw(renderer);
+            tile.second.second.Draw(*BallRenderer);
+            // tile.second.second.Draw(renderer);
         }
 
 }
@@ -89,15 +98,19 @@ void GameLevel::initZapper( unsigned int levelWidth, unsigned int levelHeight, i
         if(level > 0) obj.isRotate = rand()%2;
         if(level > 1) obj.isBackandForth = rand()%2;
         if(level > 1) obj.isUpandDown = rand()%2;
+        if(level == 3) obj.isBackandForth = true;
+        if(level == 3) obj.isUpandDown = true;
         obj.Rotation = Angles[rand()%3];
 
         obj.center = pos  + (size /2.0f);
 
         glm::vec2 ball1Pos = glm::vec2(pos.x + size.x/2.0f - BALL_RADIUS, pos.y - BALL_RADIUS); 
         BallObject ball1(ball1Pos, BALL_RADIUS, INITIAL_BALL_VELOCITY,ResourceManager::GetTexture("whitecircle"));
+        ball1.Color = glm::vec4 (1.0f,1.0f,1.0f,1.0f);
 
         glm::vec2 ball2Pos = glm::vec2(pos.x + size.x/2.0f - BALL_RADIUS, pos.y + size.y - BALL_RADIUS); 
         BallObject ball2(ball2Pos, BALL_RADIUS, INITIAL_BALL_VELOCITY,ResourceManager::GetTexture("whitecircle"));
+        ball2.Color = glm::vec4 (1.0f,1.0f,1.0f,1.0f);
 
         // obj.Balls.push_back(ball1);
         // obj.Balls.push_back(ball2);
@@ -189,3 +202,30 @@ void GameLevel::init(std::vector<std::vector<unsigned int>> tileData, unsigned i
         }
     }
 }
+
+
+// void DrawSpriteBall(Shader &shader,Texture2D &texture, glm::vec2 position, glm::vec2 size, float rotate, glm::vec3 color)
+// {
+//     // prepare transformations
+//     shader.Use();
+//     glm::mat4 model = glm::mat4(1.0f);
+//     model = glm::translate(model, glm::vec3(position, 0.0f));  // first translate (transformations are: scale happens first, then rotation, and then final translation happens; reversed order)
+
+//     model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f)); // move origin of rotation to center of quad
+//     model = glm::rotate(model, glm::radians(rotate), glm::vec3(0.0f, 0.0f, 1.0f)); // then rotate
+//     model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f)); // move origin back
+
+//     model = glm::scale(model, glm::vec3(size, 1.0f)); // last scale
+
+//     shader.SetMatrix4("model", model);
+
+//     // render textured quad
+//     shader.SetVector3f("spriteColor", color);
+
+//     glActiveTexture(GL_TEXTURE0);
+//     texture.Bind();
+
+//     glBindVertexArray(quadVAO);
+//     glDrawArrays(GL_TRIANGLES, 0, 6);
+//     glBindVertexArray(0);
+// }

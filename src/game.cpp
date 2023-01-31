@@ -51,6 +51,7 @@ void Game::Init()
 {
     // load shaders
     ResourceManager::LoadShader("../shaders/sprite.vs", "../shaders/sprite.frag", nullptr, "sprite");
+    ResourceManager::LoadShader("../shaders/ball.vs", "../shaders/ball.frag", nullptr, "ballshader");
     // configure shaders
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(this->Width), 
         static_cast<float>(this->Height), 0.0f, -1.0f, 1.0f);
@@ -135,6 +136,7 @@ void Game::Update(float dt)
     {
             this->State = GAME_LOSE;
             this->Level = 4;
+            ResetLevel();
     }
 
     // if(this->State == GAME_WIN || GAME_LOSE)
@@ -179,7 +181,7 @@ void Game::ProcessInput(float dt)
         // move playerboard
         if (this->Keys[GLFW_KEY_UP])
         {
-            Ball->Velocity.y -= 15.0f;
+            Ball->Velocity.y -= 55.0f;
             Ball = new BallObject(Ball->Position, BALL_RADIUS, Ball->Velocity,ResourceManager::GetTexture("redface"));
         }
     }
@@ -247,16 +249,16 @@ void Game::Render(float offset)
     if(this->State == GAME_ACTIVE || GAME_MENU)
     {
         // draw background
-        Texture2D background = ResourceManager::GetTexture("background");
-        Renderer->DrawSprite(background, 
-            glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f
-        );
+        // Texture2D background = ResourceManager::GetTexture("background");
+        // Renderer->DrawSprite(background, 
+        //     glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f
+        // );
 
-        for (GameObject &tile : this->Levels[this->Level].Road)
-        {
-        if (!tile.Destroyed)
-            tile.Draw(*Renderer);
-        }
+        // for (GameObject &tile : this->Levels[this->Level].Road)
+        // {
+        // if (!tile.Destroyed)
+        //     tile.Draw(*Renderer);
+        // }
 
         // draw level
         // GameLevel one; one.Load("../levels/one.lvl", this->Width , this->Height );
@@ -374,10 +376,10 @@ void Game::Render(float offset)
         Text->RenderText(
             "Press ENTER to retry or ESC to quit", 130.0, Height / 2, 1.0, glm::vec3(1.0, 1.0, 0.0)
         );
-        std::stringstream ss;
-        ss << this->Total_Coins; 
+        std::stringstream sss;
+        sss << this->Total_Coins; 
         Text->RenderText(
-            "Score : "+ ss.str(), 130.0, Height / 2 + 20.0, 1.0, glm::vec3(1.0, 1.0, 0.0)
+            "Score : "+ sss.str(), 130.0, Height / 2 + 20.0, 1.0, glm::vec3(1.0, 1.0, 0.0)
         );
     }
 }
