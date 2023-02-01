@@ -88,7 +88,7 @@ void main()
         d = d * -1;
     }
 
-    float c  = smoothstep(5,20,d);
+    float c  = smoothstep(5,25,d);
 
     if(d > 20)
     {
@@ -96,7 +96,7 @@ void main()
     }
 
     // color =  ((1 - c) * vec4(spriteColor, 1.0)) * texture(image, TexCoords) ;
-    color =  (1 - c) * vec4(1.0,1.0,1.0, 1.0) + c * vec4(1.0,1.0,0.0, 0.7) ;
+    color =  (1 - c) * vec4(1.0,1.0,1.0, 1.0) + c * vec4(1.0,1.0,0.0, 0.6) ;
     // color =   vec4(1.0,1.0,1.0, 1.0);
 }
 
