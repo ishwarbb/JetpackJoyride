@@ -88,9 +88,9 @@ void main()
         d = d * -1;
     }
 
-    float c  = smoothstep(2,10,d);
+    float c  = smoothstep(5,20,d);
 
-    if(d > 11)
+    if(d > 20)
     {
         discard;
     }

@@ -317,20 +317,22 @@ void Game::Render(float offset)
                     one.ZapperObjects[i].first.Rotation = one.ZapperObjects[i].first.Rotation +1;
                 if( one.ZapperObjects[i].first.isUpandDown)
                 {
-                    one.ZapperObjects[i].first.Position[0] += static_cast<float>(sin(glm::radians(glfwGetTime()))) ;
-                    one.ZapperObjects[i].first.center.x = one.ZapperObjects[i].first.Position[0];
+                    float f = static_cast<float>(sin(glm::radians(glfwGetTime())));
+                    one.ZapperObjects[i].first.Position[0] += f;
+                    one.ZapperObjects[i].first.center.x += f;
                 }
                 if( one.ZapperObjects[i].first.isBackandForth)
                 {
-                    one.ZapperObjects[i].first.Position[0] += static_cast<float>(cos(glm::radians(glfwGetTime()))) ;
-                    one.ZapperObjects[i].first.center.x = one.ZapperObjects[i].first.Position[0];
+                    float g = static_cast<float>(cos(glm::radians(glfwGetTime()))) ;
+                    one.ZapperObjects[i].first.Position[0] += g ;
+                    one.ZapperObjects[i].first.center.x += g;
                 }
 
                 float rot = glm::radians(one.ZapperObjects[i].first.Rotation);
                 // float rot = glm::radians(0.0f);;
                 glm::vec2 center = one.ZapperObjects[i].first.center;
-                int l = one.ZapperObjects[i].first.Size.y;
-                int b = one.ZapperObjects[i].first.Size.x;
+                int l = 200;
+                int b = 8;
 
             one.ZapperObjects[i].second.first.Position.x = center.x + (static_cast<float>(sin(rot)) * ( l/ 2.0f)) - (BALL_RADIUS) ;
             one.ZapperObjects[i].second.first.Position.y = center.y - (static_cast<float>(cos(rot)) * ( l/ 2.0f)) - (BALL_RADIUS);
@@ -530,8 +532,8 @@ void Game::DoCollisions()
     for (std::pair<GameObject, std::pair<BallObject, BallObject>> &boxi : this->Levels[this->Level].ZapperObjects)
     {
         GameObject box = boxi.first;
-        glm::vec2 end1 = boxi.second.first.Position;
-        glm::vec2 end2 = boxi.second.second.Position;
+        glm::vec2 end1 = boxi.first.end1;
+        glm::vec2 end2 = boxi.first.end2;
         bool collision = CheckCollisionNonAABB(*Ball, box,end1,end2);
         if (collision)
         {
@@ -636,7 +638,11 @@ bool CheckCollisionNonAABB(BallObject &one, GameObject &two, glm::vec2 end1, glm
 
     // printf("%f\n",d);
 
-    if(d <= (BALL_RADIUS - two.Size.x/2)) return true;
+    if(d <= (BALL_RADIUS + 10))
+    {
+        printf("Hello\n");
+        return true;
+    }
     
     return false;
 }

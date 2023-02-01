@@ -30,7 +30,7 @@ void main()
     // Raising the result to a power allows us to change the glow fade behaviour
     // See https://www.desmos.com/calculator/eecd6kmwy9 for an illustration
     // (Move the slider of m to see different fade rates)
-    dist = pow(dist, 0.4);
+    dist = pow(dist, 0.8);
     
     // Knowing the distance from a fragment to the source of the glow, the above can be 
     // written compactly as: 
@@ -41,7 +41,7 @@ void main()
        
     // if(dist >= 1.5)
     // {
-        vec3 col = dist * vec3(1.0, 0.5, 0.25);
+        vec3 col = dist * vec3(1.0, 1.0, 1.0);
         // vec3 col = dist * vec3(1.0, 0.5, 0.25);
 
 
@@ -58,7 +58,7 @@ void main()
     // float c  = smoothstep(20,50,d);
 
     // color =  ((1 - c) * vec4(spriteColor, 1.0)) * texture(image, TexCoords) ;
-    // color = vec4(col, 1.0);
+    color = vec4(col, 1.0) * texture(image, TexCoords);
 
-    color = vec4(spriteColor, 1.0) * texture(image, TexCoords);
+    // color = vec4(spriteColor, 1.0) * texture(image, TexCoords);
 }  

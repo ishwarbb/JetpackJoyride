@@ -108,11 +108,11 @@ void GameLevel::initZapper( unsigned int levelWidth, unsigned int levelHeight, i
         GameObject obj(pos, size, ResourceManager::GetTexture("white"), glm::vec3(1.0f, 1.0f, 1.0f));
         obj.isZapper = true;
         obj.isRotate = false;
-        if(level > 0) obj.isRotate = rand()%2;
-        if(level > 1) obj.isBackandForth = rand()%2;
-        if(level > 1) obj.isUpandDown = rand()%2;
-        if(level == 3) obj.isBackandForth = true;
-        if(level == 3) obj.isUpandDown = true;
+        if(level >= 0) obj.isRotate = rand()%2;
+        if(level >= 1) obj.isBackandForth = rand()%2;
+        if(level >= 1) obj.isUpandDown = rand()%2;
+        if(level >= 2) obj.isBackandForth = true;
+        if(level >= 2) obj.isUpandDown = true;
         obj.Rotation = Angles[rand()%3];
 
         obj.center = pos  + (size /2.0f);
