@@ -30,8 +30,10 @@ PrintMat4( glm::mat4 mat )
 
 // GameObject      *Player;
 SpriteRenderer  *Renderer;
+SpriteRenderer  *EntryRenderer;
 BallObject     *Ball; 
-GameObject     *BallShadow; 
+GameObject     *BallShadow;
+GameObject     *Entry; 
 TextRenderer  *Text;
 
 glm::mat4 transform = glm::mat4(1.0f); 
@@ -56,6 +58,7 @@ void Game::Init()
 {
     // load shaders
     ResourceManager::LoadShader("../shaders/sprite.vs", "../shaders/sprite.frag", nullptr, "sprite");
+    // ResourceManager::LoadShader("../shaders/sprite.vs", "../shaders/entry.frag", nullptr, "entry");
     ResourceManager::LoadShader("../shaders/ball.vs", "../shaders/ball.frag", nullptr, "ballshader");
     ResourceManager::LoadShader("../shaders/ballshadow.vs", "../shaders/ballshadow.frag", nullptr, "ballshadowshader");
     ResourceManager::LoadShader("../shaders/bar.vs", "../shaders/bar.frag", nullptr, "bar");
@@ -64,10 +67,15 @@ void Game::Init()
         static_cast<float>(this->Height), 0.0f, -1.0f, 1.0f);
     ResourceManager::GetShader("sprite").Use().SetInteger("image", 0);
     ResourceManager::GetShader("sprite").SetMatrix4("projection", projection);
+
+    // ResourceManager::GetShader("entry").Use().SetInteger("image", 0);
+    // ResourceManager::GetShader("entry").SetMatrix4("projection", projection);
     // set render-specific controls
     Shader spriteShader = ResourceManager::GetShader("sprite");
     Renderer = new SpriteRenderer(spriteShader);
 
+    // Shader entryShader = ResourceManager::GetShader("entry");
+    // EntryRenderer = new SpriteRenderer(entryShader);    
         // load textures
     ResourceManager::LoadTexture("../textures/background.jpg", false, "background");
     ResourceManager::LoadTexture("../textures/awesomeface.png", true, "face");
@@ -97,8 +105,7 @@ void Game::Init()
     this->Level = 0;
 
     glm::vec2 playerPos = glm::vec2(
-        this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, 
-        this->Height - PLAYER_SIZE.y
+        0,0
     );
     // Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
 
@@ -125,6 +132,8 @@ void Game::Init()
     road_width = this->Width;
     Ball->Acceleration = glm::vec2(0,9.8);
     // BallShadow->Acceleration = glm::vec2(0,9.8);
+
+    // Entry = new GameObject(playerPos, glm::vec2(this->Width,this->Height), ResourceManager::GetTexture("paddle"));
 }
 
 void Game::Update(float dt)
@@ -324,8 +333,9 @@ void Game::Render(float offset)
                 if( one.ZapperObjects[i].first.isBackandForth)
                 {
                     float g = static_cast<float>(cos(glm::radians(glfwGetTime()))) ;
-                    one.ZapperObjects[i].first.Position[0] += g ;
-                    one.ZapperObjects[i].first.center.x += g;
+                    if(g < 0) g *= -1;
+                    one.ZapperObjects[i].first.Position[1] -= 0.5*g ;
+                    one.ZapperObjects[i].first.center.y -= 0.5*g;
                 }
 
                 float rot = glm::radians(one.ZapperObjects[i].first.Rotation);
@@ -640,7 +650,7 @@ bool CheckCollisionNonAABB(BallObject &one, GameObject &two, glm::vec2 end1, glm
 
     if(d <= (BALL_RADIUS + 10))
     {
-        printf("Hello\n");
+        // printf("Hello\n");
         return true;
     }
     
