@@ -1,7 +1,7 @@
 /*******************************************************************
-** This code is part of Breakout.
+** This code is part of JetPackJoyRide.
 **
-** Breakout is free software: you can redistribute it and/or modify
+** JetPackJoyRide is free software: you can redistribute it and/or modify
 ** it under the terms of the CC BY 4.0 license as published by
 ** Creative Commons, either version 4 of the License, or (at your
 ** option) any later version.
@@ -23,7 +23,7 @@ const unsigned int SCREEN_WIDTH = 800;
 // The height of the screen
 const unsigned int SCREEN_HEIGHT = 600;
 
-Game* Breakout = new Game(SCREEN_WIDTH, SCREEN_HEIGHT);
+Game* JetPackJoyRide = new Game(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 int main(int argc, char *argv[])
 {
@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 #endif
     glfwWindowHint(GLFW_RESIZABLE, true);
 
-    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Breakout", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "JetPackJoyRide", nullptr, nullptr);
     glfwMakeContextCurrent(window);
 
     // glad: load all OpenGL function pointers
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
     // initialize game
     // ---------------
-    Breakout->Init();
+    JetPackJoyRide->Init();
 
     // deltaTime variables
     // -------------------
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
         // --------------------
         float currentFrame = glfwGetTime();
         // float offset = (float) 0.5 * glfwGetTime();
-        float offset = (float) 10 ;
+        float offset = (float) 3 ;
         // float offset = (float) 0 ;
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -79,17 +79,17 @@ int main(int argc, char *argv[])
 
         // manage user input
         // -----------------
-        Breakout->ProcessInput(deltaTime);
+        JetPackJoyRide->ProcessInput(deltaTime);
 
         // update game state
         // -----------------
-        Breakout->Update(deltaTime);
+        JetPackJoyRide->Update(deltaTime);
 
         // render
         // ------
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        Breakout->Render(offset);
+        JetPackJoyRide->Render(offset);
 
         glfwSwapBuffers(window);
     }
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
     // delete all resources as loaded using the resource manager
     // ---------------------------------------------------------
     ResourceManager::Clear();
-    delete Breakout;
+    delete JetPackJoyRide;
     glfwTerminate();
     return 0;
 }
@@ -110,11 +110,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (key >= 0 && key < 1024)
     {
         if (action == GLFW_PRESS)
-            Breakout->Keys[key] = true;
+            JetPackJoyRide->Keys[key] = true;
         else if (action == GLFW_RELEASE)
         {
-            Breakout->Keys[key] = false;
-            Breakout->KeysProcessed[key] = false;
+            JetPackJoyRide->Keys[key] = false;
+            JetPackJoyRide->KeysProcessed[key] = false;
         }
     }
 }
