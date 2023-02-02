@@ -122,7 +122,7 @@ void Game::Init()
     Text = new TextRenderer(this->Width, this->Height);
     Text->Load("../fonts/ocraext.ttf", 24);
 
-    this->Lives = 30;
+    this->Lives = 9;
     this->Coins = 0;
     this->Total_Coins = 0;
     this->Distance_Travelled = 0;
