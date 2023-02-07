@@ -1,27 +1,24 @@
-# OpenGL boilerplate
+## Game Description
 
-## Contents
-- glfw, glad and glm built from source in `libraries`
+A Jetpack Joyride like / flappy bird like 2D game wrtiien in OpenGL. Collect as many coins as possible and avoid the zappers.
 
-- Standard shader class from learnopengl.com and stb_image.h in `include`
+Controls - Use UP ARROW for moving the sprite up.
 
-- CMake file to compile project (includes glfw, glad, glm and freetype)
+The game starts at level 1. Complete a run of 1000 distance to go to higher levels.
+
+You have 9 lives available. You will be spawned again on the top left of the screen if you hit a zapper. (Be Careful, if there is a zapper then you will keep losing lives)
+
+Have fun!
+
+Note : Most of the Classes used in the code have been taken from learnopengl.
 
 
-## Instructions to build
+## Instructions
 
-1. <b>INITAL SETUP</b> (do this once)
-
-    - Setup FreeType to render text 
-        - Linux/macOS (recommended OSes)
-            - Download the latest stable release(2.10.1) from [the official website](https://freetype.org/download.html)
-            - Run the following
-                1.  `tar -xvf freetype-2.10.1.tar.gz`
-                2.  `cd freetype-2.10.1`
-                3.  `./configure --prefix=/usr/local/freetype/2_10_1 --enable-freetype-config` : Prefix defines where freetype is installed
-                4.  `make; make install`
-        - Windows
-            - Use [this video](https://www.youtube.com/watch?v=qW_8Dyq2asc) if using VSCode (I hope you aren't)
-
-2. `mkdir build; cd build`
-3. `cmake ..; make`
+```
+mkdir build
+cd build
+cmake ..
+make
+./app
+```
