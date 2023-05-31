@@ -1,9 +1,0 @@
-/home/ishwar/Desktop/A15/JetpackJoyride/build/CMakeFiles/app.dir
-/home/ishwar/Desktop/A15/JetpackJoyride/build/CMakeFiles/glad.dir
-/home/ishwar/Desktop/A15/JetpackJoyride/build/CMakeFiles/edit_cache.dir
-/home/ishwar/Desktop/A15/JetpackJoyride/build/CMakeFiles/rebuild_cache.dir
-/home/ishwar/Desktop/A15/JetpackJoyride/build/libraries/glfw/CMakeFiles/edit_cache.dir
-/home/ishwar/Desktop/A15/JetpackJoyride/build/libraries/glfw/CMakeFiles/rebuild_cache.dir
-/home/ishwar/Desktop/A15/JetpackJoyride/build/libraries/glfw/src/CMakeFiles/glfw.dir
-/home/ishwar/Desktop/A15/JetpackJoyride/build/libraries/glfw/src/CMakeFiles/edit_cache.dir
-/home/ishwar/Desktop/A15/JetpackJoyride/build/libraries/glfw/src/CMakeFiles/rebuild_cache.dir
