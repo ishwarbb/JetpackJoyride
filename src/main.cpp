@@ -1,11 +1,3 @@
-/*******************************************************************
-** This code is part of JetPackJoyRide.
-**
-** JetPackJoyRide is free software: you can redistribute it and/or modify
-** it under the terms of the CC BY 4.0 license as published by
-** Creative Commons, either version 4 of the License, or (at your
-** option) any later version.
-******************************************************************/
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -34,7 +26,7 @@ int main(int argc, char *argv[])
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
-    glfwWindowHint(GLFW_RESIZABLE, true);
+    glfwWindowHint(GLFW_RESIZABLE, false);
 
     GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "JetPackJoyRide", nullptr, nullptr);
     glfwMakeContextCurrent(window);
@@ -71,7 +63,7 @@ int main(int argc, char *argv[])
         // --------------------
         float currentFrame = glfwGetTime();
         // float offset = (float) 0.5 * glfwGetTime();
-        float offset = (float) 3 ;
+        float offset = (float) 6 ;
         // float offset = (float) 0 ;
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
